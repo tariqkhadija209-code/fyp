@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fee Management - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f4f7f6; }
+        .sidebar { height: 100vh; background: #2C3E50; color: white; position: fixed; width: 250px; }
+        .sidebar a { color: #bdc3c7; text-decoration: none; display: block; padding: 15px 20px; border-bottom: 1px solid #34495e; }
+        .sidebar a:hover { background: #1abc9c; color: white; }
+        .main-content { margin-left: 250px; padding: 30px; }
+        .gen-card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h4 class="text-center py-4">Admin Panel</h4>
+        <a href="admin_dashboard.html">Overview</a>
+        <a href="admin_rooms.html">Rooms</a>
+        <a href="admin_fees.html" class="bg-primary text-white">Fees</a>
+        <a href="admin_complaints.html">Complaints</a>
+        <a href="../login.html" class="text-danger mt-5">Logout</a>
+    </div>
+
+    <div class="main-content">
+        <h3>Fee Management</h3>
+
+        <div class="gen-card mt-4 mb-4">
+            <h5 class="mb-3 text-secondary">Generate Monthly Fees</h5>
+            <div class="row g-3">
+                <div class="col-md-3"><input type="number" id="gen_amount" class="form-control" placeholder="Amount (e.g. 10000)"></div>
+                <div class="col-md-3"><input type="text" id="gen_month" class="form-control" placeholder="Month (e.g. April 2026)"></div>
+                <div class="col-md-3">
+                    <select id="gen_type" class="form-select">
+                        <option value="Hostel Fee">Hostel Fee</option>
+                        <option value="Mess Fee">Mess Fee</option>
+                    </select>
+                </div>
+                <div class="col-md-3"><button class="btn btn-success w-100" onclick="generateFeesNow()">Generate All</button></div>
+            </div>
+        </div>
+
+        <div class="table-responsive mt-4">
+            <table class="table bg-white shadow-sm align-middle text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Student</th>
+                        <th>Month</th>
+                        <th>Amount</th>
+                        <th>Trans ID</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="fee-list"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Fee Generate karne ka function
+        async function generateFeesNow() {
+            const amt = document.getElementById('gen_amount').value;
+            const mon = document.getElementById('gen_month').value;
+            const type = document.getElementById('gen_type').value;
+
+            if(!amt || !mon) {
+                alert("Pehle Amount aur Month to likhen!");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("amount", amt);
+            formData.append("month", mon);
+            formData.append("fee_type", type);
+
+            const res = await fetch('http://127.0.0.1:8000/admin/generate-fees', {method: 'POST', body: formData});
+            if(res.ok) {
+                alert("Fees successfully generate ho gayi hain!");
+                loadFees();
+            }
+        }
+
+        // Fees load aur Approve button ka logic
+        async function loadFees() {
+            const res = await fetch('http://127.0.0.1:8000/admin/fees-summary');
+            const fees = await res.json();
+            const tbody = document.getElementById('fee-list');
+            
+            tbody.innerHTML = fees.map(f => {
+                let statusBadge = "";
+                let actionBtn = "---";
+
+                // Simple Logic: Agar Paid hai to date dikhao
+                if (f.status === 'Paid') {
+                    statusBadge = '<span class="badge bg-success">Paid</span>';
+                    actionBtn = `<small class="text-muted">${f.payment_date || 'Approved'}</small>`;
+                } 
+                // Agar ID aa gayi hai (Pending), to Approve button dikhao
+                else if (f.stripe_payment_id && f.stripe_payment_id !== '---') {
+                    statusBadge = '<span class="badge bg-warning text-dark">Pending</span>';
+                    actionBtn = `<button class="btn btn-sm btn-primary" onclick="approve(${f.fee_id})">Approve Now</button>`;
+                } 
+                // Warna Unpaid badge
+                else {
+                    statusBadge = '<span class="badge bg-danger">Unpaid</span>';
+                }
+
+                return `
+                    <tr>
+                        <td><b>${f.username}</b></td>
+                        <td>${f.billing_month}</td>
+                        <td>Rs. ${f.amount}</td>
+                        <td><code>${f.stripe_payment_id || '---'}</code></td>
+                        <td>${statusBadge}</td>
+                        <td>${actionBtn}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function approve(id) {
+            const formData = new FormData();
+            formData.append("fee_id", id);
+            const res = await fetch('http://127.0.0.1:8000/admin/approve-fee', {method: 'POST', body: formData});
+            if(res.ok) {
+                loadFees();
+            }
+        }
+
+        loadFees();
+    </script>
+</body>
+</html>

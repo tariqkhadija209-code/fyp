@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Mess Menu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; }
+        .sidebar { height: 100vh; background: #34495e; color: white; position: fixed; width: 250px; }
+        .sidebar a { color: #ecf0f1; text-decoration: none; display: block; padding: 15px 20px; border-bottom: 1px solid #2c3e50; }
+        .main-content { margin-left: 250px; padding: 30px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h4 class="text-center py-4">Warden Panel</h4>
+        <a href="warden_dashboard.html">Overview</a>
+        <a href="warden_attendance.html">View Attendance</a>
+        <a href="warden_mess.html" class="bg-warning">Manage Mess</a>
+        <a href="../login.html" class="text-danger mt-5">Logout</a>
+    </div>
+
+    <div class="main-content">
+        <h3>Update Mess Menu</h3>
+        <div class="card p-4 border-0 shadow-sm mb-4">
+            <form id="messForm" class="row g-3">
+                <div class="col-md-3">
+                    <select name="day" class="form-select" required>
+                        <option value="Monday">Monday</option><option value="Tuesday">Tuesday</option>
+                        <option value="Wednesday">Wednesday</option><option value="Thursday">Thursday</option>
+                        <option value="Friday">Friday</option><option value="Saturday">Saturday</option><option value="Sunday">Sunday</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="type" class="form-select">
+                        <option value="Breakfast">Breakfast</option><option value="Lunch">Lunch</option><option value="Dinner">Dinner</option>
+                    </select>
+                </div>
+                <div class="col-md-4"><input type="text" name="dish" class="form-control" placeholder="Dish Name" required></div>
+                <div class="col-md-2"><button type="submit" class="btn btn-warning w-100">Update</button></div>
+            </form>
+        </div>
+
+        <table class="table bg-white shadow-sm">
+            <thead class="table-dark"><tr><th>Day</th><th>Meal</th><th>Dish</th></tr></thead>
+            <tbody id="menu-list"></tbody>
+        </table>
+    </div>
+
+    <script>
+        document.getElementById('messForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            await fetch('http://127.0.0.1:8000/warden/update-mess', { method: 'POST', body: formData });
+            alert("Menu Updated!");
+            location.reload();
+        };
+
+        async function loadMenu() {
+            const res = await fetch('http://127.0.0.1:8000/warden/menu');
+            const menu = await res.json();
+            document.getElementById('menu-list').innerHTML = menu.map(m => `
+                <tr><td>${m.day_of_week}</td><td>${m.meal_type}</td><td>${m.dish_name}</td></tr>
+            `).join('');
+        }
+        loadMenu();
+    </script>
+</body>
+</html>

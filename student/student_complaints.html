@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Submit Complaint</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f0f2f5; }
+        .sidebar { height: 100vh; background: #1c2938; color: white; position: fixed; width: 250px; }
+        .sidebar a { color: #adb5bd; text-decoration: none; display: block; padding: 15px 20px; border-bottom: 1px solid #2c3e50; }
+        .main-content { margin-left: 250px; padding: 30px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h4 class="text-center py-4">Student Panel</h4>
+        <a href="student_dashboard.html">Home</a>
+        <a href="student_attendance.html">Attendance</a>
+        <a href="student_mess.html">Mess Menu</a>
+        <a href="student_fees.html">Fee Status</a>
+        <a href="student_complaints.html" class="bg-primary text-white">My Complaints</a>
+        <a href="../login.html" class="text-danger mt-5">Logout</a>
+        
+    </div>
+
+    <div class="main-content">
+        <h3>Submit a New Complaint</h3>
+        <div class="card p-4 border-0 shadow-sm">
+            <form id="compForm">
+                <input type="text" name="type" class="form-control mb-3" placeholder="Complaint Type (e.g., Water, Mess, Electricity)" required>
+                <textarea name="desc" class="form-control mb-3" placeholder="Describe your issue..." rows="4" required></textarea>
+                <button type="submit" class="btn btn-primary w-100">Submit Complaint</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('compForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const user = JSON.parse(localStorage.getItem('user'));
+            const formData = new FormData(e.target);
+            formData.append("student_id", user.user_id);
+
+            const res = await fetch('http://127.0.0.1:8000/student/add-complaint', { method: 'POST', body: formData });
+            if(res.ok) { alert("Complaint Submitted!"); location.reload(); }
+        }
+    </script>
+</body>
+</html>
