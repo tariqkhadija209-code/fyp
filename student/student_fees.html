@@ -15,7 +15,7 @@
     </style>
 </head>
 <body>
-     <div class="sidebar">
+    <div class="sidebar">
         <h4 class="text-center py-4">Student Panel</h4>
         <a href="student_dashboard.html">Home</a>
         <a href="student_attendance.html">Attendance</a>
@@ -28,9 +28,9 @@
     <div class="main-content">
         <h2>My Fee History</h2>
         <div class="card fee-card p-4 mt-4">
-            <table class="table align-middle">
+            <table class="table align-middle text-center">
                 <thead class="table-light">
-                    <tr><th>Month</th><th>Type</th><th>Amount</th><th>Status</th><th>Action</th></tr>
+                    <tr><th>Month</th><th>Amount</th><th>Status</th><th>Action</th></tr>
                 </thead>
                 <tbody id="fee-table-body"></tbody>
             </table>
@@ -38,33 +38,72 @@
     </div>
 
     <script>
-        async function loadFees() {
+    // 1. Function to Fetch and Load Student Fees
+    async function loadFees() {
+        try {
             const user = JSON.parse(localStorage.getItem('user'));
+            // Ensuring we fetch data based on the correct user context
             const res = await fetch(`http://127.0.0.1:8000/student/fees/${user.user_id}`);
             const data = await res.json();
+            
             document.getElementById('fee-table-body').innerHTML = data.map(f => `
                 <tr>
                     <td>${f.billing_month}</td>
-                    <td>${f.fee_type}</td>
-                    <td>Rs. ${f.amount}</td>
-                    <td><span class="badge ${f.status === 'Paid' ? 'bg-success' : (f.status === 'Pending' ? 'bg-warning' : 'bg-danger')}">${f.status}</span></td>
+                    <td><b>Rs. ${f.amount}</b></td>
                     <td>
-                        ${f.status === 'Unpaid' ? `<button class="btn btn-primary btn-sm" onclick="payNow(${f.fee_id})">Pay Now</button>` : 
-                        (f.status === 'Pending' ? '<small>Waiting for Approval</small>' : '<span class="text-success small">Cleared</span>')}
+                        <span class="badge ${f.status === 'Paid' ? 'bg-success' : 'bg-danger'}">
+                            ${f.status}
+                        </span>
+                    </td>
+                    <td>
+                        ${f.status === 'Unpaid' ? 
+                        `<button class="btn btn-primary btn-sm" onclick="payWithStripe(${f.fee_id}, ${f.amount})">
+                            <i class="bi bi-credit-card me-1"></i> Pay Securely
+                        </button>` : 
+                        `<span class="text-success small"><i class="bi bi-check-circle-fill"></i> Payment Cleared</span>`}
                     </td>
                 </tr>
             `).join('');
+        } catch (err) {
+            console.error("Data Retrieval Error: Unable to fetch fee records.");
         }
+    }
 
-        async function payNow(feeId) {
-            const tid = prompt("Enter JazzCash/Bank Transaction ID:");
-            if(tid) {
-                const fd = new FormData(); fd.append("fee_id", feeId); fd.append("trans_id", tid);
-                await fetch('http://127.0.0.1:8000/student/submit-payment', {method: 'POST', body: fd});
-                alert("Submitted! Wait for Admin approval."); loadFees();
+    // 2. Stripe Checkout Integration
+    async function payWithStripe(feeId, amount) {
+        const fd = new FormData();
+        fd.append("fee_id", feeId);
+        fd.append("amount", amount);
+
+        try {
+            // Requesting a secure checkout session from the gateway
+            const res = await fetch('http://127.0.0.1:8000/student/create-checkout-session', {
+                method: 'POST', 
+                body: fd
+            });
+            const data = await res.json();
+            
+            if(data.url) {
+                // Redirecting to Stripe's secure payment interface
+                window.location.href = data.url; 
+            } else {
+                alert("Gateway Error: We are unable to initialize the payment session. Please try again later.");
             }
+        } catch (err) {
+            alert("Connection Error: Could not reach the payment server.");
         }
-        loadFees();
-    </script>
+    }
+
+    // 3. Post-Payment Notification Handling
+    // Checking URL parameters to confirm a successful redirection back to the portal
+    if(window.location.search.includes('payment=success')) {
+        alert("Transaction Successful: Your payment has been processed and your records are updated.");
+        // Redirecting to clean the URL after notification
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    // Initialize display on page load
+    loadFees();
+</script>
 </body>
 </html>
