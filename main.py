@@ -134,8 +134,8 @@ async def create_checkout_session(fee_id: int = Form(...), amount: float = Form(
             }],
             mode='payment',
            
-            success_url=f"https://hostelflow-production-e1ce.up.railway.app/payment-success?fee_id={fee_id}",
-            cancel_url="https://hostelflow-production-e1ce.up.railway.app/student/student_fees.js",
+            success_url=f"/payment-success?fee_id={fee_id}",
+            cancel_url="/test/student/student_fees.js",
         )
         return {"url": session.url}
     except Exception as e:
@@ -147,9 +147,9 @@ async def payment_success(fee_id: int):
     cursor = db.cursor()
     try:
         today = datetime.date.today()
-        cursor.execute("UPDATE Fees SET status = 'Paid', payment_date = %s WHERE fee_id = %s", (today, fee_id))
+        cursor.execute("UPDATE fees SET status = 'Paid', payment_date = %s WHERE fee_id = %s", (today, fee_id))
         db.commit()
-        return RedirectResponse(url=f"https://hostelflow-production-e1ce.up.railway.app/student/fees?payment=success&fee_id={fee_id}")
+        return RedirectResponse(url=f"http://localhost:3000/student/fees?payment=success&fee_id={fee_id}")
         
     except Exception as e:
         print(f"Database update error: {e}")
@@ -163,9 +163,9 @@ async def get_admin_stats():
     db = get_db_connection()
     cursor = db.cursor()
     try:
-        cursor.execute("SELECT COUNT(*) FROM Hostel_Rooms"); total_rooms = cursor.fetchone()[0]
-        cursor.execute("SELECT COUNT(*) FROM Complaints"); total_complaints = cursor.fetchone()[0]
-        cursor.execute("SELECT SUM(amount) FROM Fees WHERE status = 'Paid'"); total_revenue = cursor.fetchone()[0] or 0
+        cursor.execute("SELECT COUNT(*) FROM hostel_rooms"); total_rooms = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM complaints"); total_complaints = cursor.fetchone()[0]
+        cursor.execute("SELECT SUM(amount) FROM fees WHERE status = 'Paid'"); total_revenue = cursor.fetchone()[0] or 0
         return {"total_rooms": total_rooms, "pending_complaints": total_complaints, "total_revenue": float(total_revenue)}
     finally:
         db.close()
@@ -309,7 +309,7 @@ async def resolve_complaint(complaint_id: int):
     db = get_db_connection()
     cursor = db.cursor()
     try:
-        cursor.execute("DELETE FROM Complaints WHERE complaint_id = %s", (complaint_id,))
+        cursor.execute("DELETE FROM complaints WHERE complaint_id = %s", (complaint_id,))
         db.commit()
         return {"status": "success", "message": "Complaint resolved successfully!"}
     finally:
@@ -390,7 +390,7 @@ async def approve_fee(fee_id: int):
     cursor = db.cursor()
     try:
         today = datetime.date.today().strftime('%Y-%m-%d')
-        cursor.execute("UPDATE Fees SET status = 'Paid', payment_date = %s WHERE fee_id = %s", (today, fee_id))
+        cursor.execute("UPDATE fees SET status = 'Paid', payment_date = %s WHERE fee_id = %s", (today, fee_id))
         db.commit()
         return {"status": "success", "message": "Fee marked as Paid."}
     finally:
@@ -423,7 +423,7 @@ async def get_student_fees(student_id: int):
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
     try:
-        cursor.execute("SELECT * FROM Fees WHERE student_id = %s ORDER BY fee_id DESC", (student_id,))
+        cursor.execute("SELECT * FROM fees WHERE student_id = %s ORDER BY fee_id DESC", (student_id,))
         return cursor.fetchall()
     finally:
         db.close()
