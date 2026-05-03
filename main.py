@@ -118,29 +118,49 @@ async def login(email: str = Form(...), password: str = Form(...)):
         db.close()
 
 # --- 2. STRIPE PAYMENT FLOW UPDATE ---
+from pydantic import BaseModel
+
+class CheckoutRequest(BaseModel):
+    fee_id: int
+    amount: float
+
 @app.post("/student/create-checkout-session")
-async def create_checkout_session(fee_id: int = Form(...), amount: float = Form(...)):
+async def create_checkout_session(data: CheckoutRequest):
     try:
-        stripe_amount = int(amount * 100) 
+        fee_id = data.fee_id
+        amount = data.amount
+
+        if amount <= 0:
+            return {"error": "Invalid amount"}
+
+        stripe_amount = int(amount * 100)
+
         session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
                 'price_data': {
-                    'currency': 'pkr',
-                    'product_data': {'name': f'Hostel Fee Payment ID: {fee_id}'},
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': f'Hostel Fee Payment ID: {fee_id}'
+                    },
                     'unit_amount': stripe_amount,
                 },
                 'quantity': 1,
             }],
             mode='payment',
-           
             success_url=f"/payment-success?fee_id={fee_id}",
-            cancel_url="/test/student/student_fees.js",
+            cancel_url="/payment-cancelled",
         )
+
         return {"url": session.url}
+
     except Exception as e:
         return {"error": str(e)}
-    
+
+
+
+
+
 @app.get("/payment-success")
 async def payment_success(fee_id: int):
     db = get_db_connection()

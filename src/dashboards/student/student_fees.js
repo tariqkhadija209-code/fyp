@@ -67,7 +67,7 @@ const StudentFees = () => {
       } else {
         // Agar response mein URL nahi hai toh console mein check karein kya aaya
         console.error("Backend Error Response:", data);
-        alert("Gateway Error: " + (data.detail || "Unable to initialize payment."));
+        alert("Gateway Error: " + (data || "Unable to initialize payment."));
       }
     } catch (err) {
       console.error("Fetch Error:", err);
