@@ -10,7 +10,7 @@ import joblib
 import pickle
 
 # Model load karein
-model = joblib.load('room_allocator.pkl')
+ml_model = joblib.load('room_allocator.pkl')
 
 # --- ENVIRONMENT VARIABLES LOAD ---
 load_dotenv()
@@ -18,7 +18,7 @@ load_dotenv()
 app = FastAPI()
 
 # --- ML MODEL LOADING ---
-model = joblib.load('room_allocator.pkl')
+ml_model = joblib.load('room_allocator.pkl')
 try:
     priority_model = joblib.load('priority_model.pkl')
     vectorizer = joblib.load('vectorizer.pkl')
@@ -197,7 +197,7 @@ async def allocate_room_ai(student_id: int):
 
         dept_mapping = {'SNA': 0, 'IT': 1, 'Computing': 2} 
         dept_val = dept_mapping.get(student['department'], 0)
-        predicted_block = model.predict([[dept_val]])[0] 
+        predicted_block = ml_model.predict([[dept_val]])[0]
 
         cursor.execute("""
             SELECT room_id FROM hostel_rooms 
@@ -663,7 +663,7 @@ api_key = os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=api_key)
 
 # Model configuration
-model = genai.GenerativeModel('gemini-2.5-flash')
+gemini_model = genai.GenerativeModel('gemini-pro')
 
 @app.post("/chatbot")
 async def hostel_bot(request: Request):
@@ -680,7 +680,7 @@ async def hostel_bot(request: Request):
             f"User Question: {user_msg}"
         )
         
-        response = model.generate_content(prompt)
+        response = gemini_model.generate_content(prompt)
         
         if response.text:
             return {"reply": response.text}
