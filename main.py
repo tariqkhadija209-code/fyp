@@ -157,7 +157,7 @@ async def payment_success(fee_id: int):
     finally:
         db.close()
 
-# --- 3. ADMIN SECTION ---
+# --- 3. ADMIN SECTION -------
 @app.get("/admin/stats")
 async def get_admin_stats():
     db = get_db_connection()
