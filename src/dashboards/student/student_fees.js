@@ -17,7 +17,7 @@ const StudentFees = () => {
 
     const fetchFees = async () => {
       try {
-        const res = await fetch(`https://hostelflow-production-e1ce.up.railway.app/fees/${user.student_id}`);
+        const res = await fetch(`https://hostelflow-production-e1ce.up.railway.app/student/fees/${user.student_id}`);
         const data = await res.json();
         setFees(data);
       } catch (err) {
