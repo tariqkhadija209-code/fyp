@@ -129,6 +129,6 @@ const WardenDashboard = () => {
 // Internal Styling
 const sidebarStyle = { height: '100vh', background: '#2c3e50', color: 'white', position: 'fixed', width: '250px' };
 const linkStyle = { color: '#bdc3c7', textDecoration: 'none', display: 'block', padding: '15px 20px', borderBottom: '1px solid #34495e', transition: '0.3s' };
-const statCardStyle = { background: 'white', borderLeft: '5px solid #e67e22' };
+//const statCardStyle = { background: 'white', borderLeft: '5px solid #e67e22' };
 
 export default WardenDashboard;

@@ -134,8 +134,8 @@ async def create_checkout_session(fee_id: int = Form(...), amount: float = Form(
             }],
             mode='payment',
            
-            success_url=f"http://127.0.0.1:8000/payment-success?fee_id={fee_id}",
-            cancel_url="http://127.0.0.1:5500/test/student/student_fees.js",
+            success_url=f"https://hostelflow-production-e1ce.up.railway.app/payment-success?fee_id={fee_id}",
+            cancel_url="https://hostelflow-production-e1ce.up.railway.app/student/student_fees.js",
         )
         return {"url": session.url}
     except Exception as e:
@@ -149,7 +149,7 @@ async def payment_success(fee_id: int):
         today = datetime.date.today()
         cursor.execute("UPDATE Fees SET status = 'Paid', payment_date = %s WHERE fee_id = %s", (today, fee_id))
         db.commit()
-        return RedirectResponse(url=f"http://localhost:3000/student/fees?payment=success&fee_id={fee_id}")
+        return RedirectResponse(url=f"https://hostelflow-production-e1ce.up.railway.app/student/fees?payment=success&fee_id={fee_id}")
         
     except Exception as e:
         print(f"Database update error: {e}")

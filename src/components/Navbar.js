@@ -18,7 +18,6 @@ const Navbar = () => {
         <button className="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
           <span className="navbar-toggler-icon"></span>
         </button>
-
         <div className="collapse navbar-collapse" id="mainNavbar">
           <ul className="navbar-nav ms-auto align-items-center">
             <li className="nav-item px-2">
