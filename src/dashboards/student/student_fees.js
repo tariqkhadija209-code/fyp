@@ -39,12 +39,17 @@ const StudentFees = () => {
 
   // 2. Stripe Checkout Function
  const handlePayment = async (feeId, amount) => {
+    if(!feeId || !amount) {
+      alert("Payment Error: Missing fee details.");
+      return;
+    }
     try {
       // 1. FormData ki jagah simple JSON object banayein
       const paymentData = {
         fee_id: feeId,
         amount: amount
       };
+      
 
       const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/student/create-checkout-session', {
         method: 'POST',
