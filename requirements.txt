@@ -6,8 +6,6 @@ stripe
 joblib
 scikit-learn
 google-generativeai
-<<<<<<< HEAD
 python-multipart
-=======
 python-multipart
->>>>>>> 73d3f04 (Updated backend URL to Railway and fixed build errors)
+
