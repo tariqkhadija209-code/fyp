@@ -145,6 +145,7 @@ async def create_checkout_session(fee_id: int = Form(...), amount: float = Form(
 async def payment_success(fee_id: int):
     db = get_db_connection()
     cursor = db.cursor()
+    print(f"Payment successful for fee_id: {fee_id}. Updating database..."  )
     try:
         today = datetime.date.today()
         cursor.execute("UPDATE fees SET status = 'Paid', payment_date = %s WHERE fee_id = %s", (today, fee_id))

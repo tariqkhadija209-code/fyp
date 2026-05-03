@@ -38,24 +38,34 @@ const StudentFees = () => {
   }, [navigate]);
 
   // 2. Stripe Checkout Function
-  const handlePayment = async (feeId, amount) => {
+ const handlePayment = async (feeId, amount) => {
     try {
-      const fd = new FormData();
-      fd.append("fee_id", feeId);
-      fd.append("amount", amount);
+      // 1. FormData ki jagah simple JSON object banayein
+      const paymentData = {
+        fee_id: feeId,
+        amount: amount
+      };
 
       const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/student/create-checkout-session', {
         method: 'POST',
-        body: fd
+        headers: { 
+          'Content-Type': 'application/json' // Backend ko batayein ke ye JSON hai
+        },
+        body: JSON.stringify(paymentData) // Data ko string mein convert karein
       });
+
       const data = await res.json();
 
       if (data.url) {
-        window.location.href = data.url; // Stripe hosted page par redirect
+        // 2. Agar backend se URL mil gaya hai toh redirect karein
+        window.location.href = data.url; 
       } else {
-        alert("Gateway Error: Unable to initialize payment.");
+        // Agar response mein URL nahi hai toh console mein check karein kya aaya
+        console.error("Backend Error Response:", data);
+        alert("Gateway Error: " + (data.detail || "Unable to initialize payment."));
       }
     } catch (err) {
+      console.error("Fetch Error:", err);
       alert("Connection Error: Could not reach the payment server.");
     }
   };
