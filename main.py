@@ -149,7 +149,7 @@ async def payment_success(fee_id: int):
         today = datetime.date.today()
         cursor.execute("UPDATE fees SET status = 'Paid', payment_date = %s WHERE fee_id = %s", (today, fee_id))
         db.commit()
-        return RedirectResponse(url=f"http://localhost:3000/student/fees?payment=success&fee_id={fee_id}")
+        return RedirectResponse(url=f"https://hostelflow-production-e1ce.up.railway.app/student/fees?payment=success&fee_id={fee_id}")
         
     except Exception as e:
         print(f"Database update error: {e}")
