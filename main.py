@@ -501,7 +501,7 @@ async def mark_attendance(student_id: int = Form(...), status: str = Form(...)):
         query = "INSERT INTO attendance (student_id, status, marked_date) VALUES (%s, %s, CURDATE())"
         cursor.execute(query, (student_id, status))
         db.commit()
-        return {"status": "success", "message": "Attendance marked!"}
+        return {"status": "success", "message": "attendance marked!"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
     finally:
@@ -573,7 +573,7 @@ async def get_warden_stats():
     cursor = db.cursor()
     try:
         today = datetime.date.today()
-        cursor.execute("SELECT COUNT(*) FROM Attendance WHERE marked_date = %s AND status = 'Present'", (today,))
+        cursor.execute("SELECT COUNT(*) FROM attendance WHERE marked_date = %s AND status = 'Present'", (today,))
         count = cursor.fetchone()[0]
         return {"present_today": count}
     finally:
@@ -615,7 +615,7 @@ async def send_notification(title: str = Form(...), message: str = Form(...)):
     cursor = db.cursor()
     try:
         
-        query = "INSERT INTO Notifications (title, message) VALUES (%s, %s)"
+        query = "INSERT INTO notifications (title, message) VALUES (%s, %s)"
         cursor.execute(query, (title, message))
         db.commit()
         return {"status": "success", "message": "Notification sent to all students!"}
@@ -635,13 +635,13 @@ async def update_mess(day: str = Form(...), type: str = Form(...), dish: str = F
     finally:
         db.close()
 
-# --- 6. NOTIFICATIONS SECTION (RESTORED) ---
+# --- 6. notifications SECTION (RESTORED) ---
 @app.get("/student/notifications")
 async def get_notifs():
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
     try:
-        cursor.execute("SELECT * FROM Notifications ORDER BY created_at DESC LIMIT 10")
+        cursor.execute("SELECT * FROM notifications ORDER BY created_at DESC LIMIT 10")
         return cursor.fetchall()
     except:
         return [] 
