@@ -7,7 +7,7 @@ const AdminComplaints = () => {
   // Complaints load karne ka function
   const loadComplaints = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/admin/complaints');
+      const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/admin/complaints');
       const data = await res.json();
       setComplaints(data);
     } catch (error) {
@@ -23,7 +23,8 @@ const AdminComplaints = () => {
   const resolveComplaint = async (id) => {
     if (window.confirm("Mark this as Resolved? It will be removed from records.")) {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/admin/resolve-complaint/${id}`, {
+        const res = await fetch(`
+          https://hostelflow-production-e1ce.up.railway.app/admin/resolve-complaint/${id}`, {
           method: 'DELETE'
         });
         const result = await res.json();

@@ -11,8 +11,8 @@ const AdminRooms = () => {
     try {
       // Dono APIs ko ek sath call karein
       const [roomRes, studentRes] = await Promise.all([
-        fetch('http://127.0.0.1:8000/admin/rooms'),
-        fetch('http://127.0.0.1:8000/admin/pending-students')
+        fetch('https://hostelflow-production-e1ce.up.railway.app/admin/rooms'),
+        fetch('https://hostelflow-production-e1ce.up.railway.app/admin/pending-students')
       ]);
 
       const roomData = await roomRes.json();
@@ -33,7 +33,7 @@ const AdminRooms = () => {
   const handleAddRoom = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://127.0.0.1:8000/admin/add-room', {
+      const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/admin/add-room', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newRoom)
@@ -51,7 +51,7 @@ const AdminRooms = () => {
   const runAI = async (id) => {
     if (!window.confirm("AI Allocation shuru karein?")) return;
     try {
-      const res = await fetch(`http://127.0.0.1:8000/admin/allocate-room-ai/${id}`, { 
+      const res = await fetch(`https://hostelflow-production-e1ce.up.railway.app/admin/allocate-room-ai/${id}`, { 
         method: 'POST' 
       });
       const data = await res.json();

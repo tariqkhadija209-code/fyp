@@ -17,7 +17,7 @@ const StudentFees = () => {
 
     const fetchFees = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/student/fees/${user.student_id}`);
+        const res = await fetch(`https://hostelflow-production-e1ce.up.railway.app/fees/${user.student_id}`);
         const data = await res.json();
         setFees(data);
       } catch (err) {
@@ -44,7 +44,7 @@ const StudentFees = () => {
       fd.append("fee_id", feeId);
       fd.append("amount", amount);
 
-      const res = await fetch('http://127.0.0.1:8000/student/create-checkout-session', {
+      const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/student/create-checkout-session', {
         method: 'POST',
         body: fd
       });

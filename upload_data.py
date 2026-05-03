@@ -1,10 +1,15 @@
 import mysql.connector
+import os
+from dotenv import load_dotenv
+
+# .env file se variables load karne ke liye
+load_dotenv()
 
 config = {
     # Humne hostname ki jagah direct IP (64.227.140.137) use kiya hai
     'host': '64.227.140.137', 
     'user': 'avnadmin',
-    'password': 'AVNS_6obvrB9lEolqjownehj',
+    'password': os.getenv("DB_PASSWORD"),
     'database': 'defaultdb',
     'port': 10924,
     'ssl_ca': 'ca.pem'

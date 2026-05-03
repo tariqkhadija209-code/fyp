@@ -21,7 +21,7 @@ const StudentComplaints = () => {
     const finalStudentId = user.student_id || user.id;
 
     if (!finalStudentId) {
-      alert("Error: Student ID nahi mili. Dubara login karein.");
+      alert("Error: Student ID not found.Please login again.");
       return;
     }
 
@@ -34,7 +34,7 @@ const StudentComplaints = () => {
     formData.append("student_id", finalStudentId);
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/student/add-complaint', {
+      const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/student/add-complaint', {
         method: 'POST',
         body: formData
       });

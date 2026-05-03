@@ -1,10 +1,15 @@
-import mysql.connector
+import mysql.connector 
+import os
+from dotenv import load_dotenv
+
+# .env file se variables load karne ke liye
+load_dotenv()
 
 connection = mysql.connector.connect(
     host='mysql-30087cb5-hostelflow-db.l.aivencloud.com',
     port=10924,
     user='avnadmin',
-    password='AVNS_6obvrB9lEolqjownehj',  # Aapka Aiven Password Yahan Likhein
+    password=os.getenv("DB_PASSWORD"),  # Aapka Aiven Password Yahan Likhein
     database='defaultdb',
     ssl_ca='ca.pem'
 )

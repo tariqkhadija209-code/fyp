@@ -34,7 +34,7 @@ const StudentAttendance = () => {
     formData.append("status", "Present");
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/student/mark-attendance', {
+      const response = await fetch('https://hostelflow-production-e1ce.up.railway.app/student/mark-attendance', {
         method: 'POST',
         body: formData 
       });

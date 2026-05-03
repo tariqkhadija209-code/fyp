@@ -20,7 +20,7 @@ const StudentDashboard = () => {
     const loadDashboardData = async () => {
       try {
         // Fetch Room Details
-        const roomRes = await fetch(`http://127.0.0.1:8000/student/room-details/${storedUser.student_id}`);
+        const roomRes = await fetch(`https://hostelflow-production-e1ce.up.railway.app/student/room-details/${storedUser.student_id}`);
         const roomData = await roomRes.json();
 
         if (roomData.status === "success") {
@@ -34,7 +34,7 @@ const StudentDashboard = () => {
         }
 
         // Fetch Notifications (Synchronization point)
-        const notifRes = await fetch('http://127.0.0.1:8000/student/notifications');
+        const notifRes = await fetch('https://hostelflow-production-e1ce.up.railway.app/student/notifications');
         const notifData = await notifRes.json();
         
         // Ensure notifData is an array before setting state

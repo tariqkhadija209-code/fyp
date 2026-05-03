@@ -11,13 +11,13 @@ const WardenAttendance = () => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user || user.role !== 'warden') {
       // navigate('/login'); 
-      // Note: Agar aapka role check 'warden' hai toh upar wali line uncomment kar dein
+     
     }
 
     // 2. Fetch All Attendance for Warden
     const fetchAttendance = async () => {
       try {
-        const res = await fetch('http://127.0.0.1:8000/warden/attendance');
+        const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/warden/attendance');
         const data = await res.json();
         console.log("Warden Attendance Data:", data);
         setAttendance(data);

@@ -14,7 +14,7 @@ const Login = () => {
         params.append('password', password);
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/login', {
+            const response = await fetch('https://hostelflow-production-e1ce.up.railway.app/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: params

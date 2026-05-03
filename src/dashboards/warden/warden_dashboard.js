@@ -20,7 +20,7 @@ const WardenDashboard = () => {
     // 2. Load Stats (Present Today count)
     const fetchStats = async () => {
       try {
-        const res = await fetch('http://127.0.0.1:8000/warden/stats');
+        const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/warden/stats');
         const data = await res.json();
         setStats(data);
       } catch (err) {
@@ -43,7 +43,7 @@ const WardenDashboard = () => {
     formData.append("message", notif.message);
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/warden/send-notification', { 
+      const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/warden/send-notification', { 
         method: 'POST', 
         body: formData 
       });

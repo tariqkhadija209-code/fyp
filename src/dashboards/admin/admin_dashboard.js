@@ -13,7 +13,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const loadStats = async () => {
       try {
-        const res = await fetch('http://127.0.0.1:8000/admin/stats');
+        const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/admin/stats');
         const data = await res.json();
         setStats(data);
       } catch (e) {
@@ -26,7 +26,7 @@ const AdminDashboard = () => {
   // AI Allocation logic
   const triggerAIAllocation = async (id) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/admin/allocate-room-ai/${id}`, { method: 'POST' });
+      const res = await fetch(`https://hostelflow-production-e1ce.up.railway.app/admin/allocate-room-ai/${id}`, { method: 'POST' });
       const data = await res.json();
       alert(data.message);
       window.location.reload();

@@ -8,7 +8,7 @@ const AdminFees = () => {
   // 1. Load Fees from Backend
   const loadFees = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/admin/fees-summary');
+      const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/admin/fees-summary');
       const data = await res.json();
       setFees(data);
     } catch (err) {
@@ -33,7 +33,7 @@ const AdminFees = () => {
       formData.append('billing_month', genData.month); // Backend field name match kar diya
       formData.append('amount', genData.amount);
 
-      const res = await fetch('http://127.0.0.1:8000/admin/generate-fees', {
+      const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/admin/generate-fees', {
         method: 'POST',
         // Note: Headers mein Content-Type nahi lagana, browser khud boundary set karega
         body: formData
@@ -57,7 +57,7 @@ const AdminFees = () => {
   // 3. Approve / Mark as Paid
   const approveFee = async (id) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/admin/approve-fee/${id}`, {
+      const res = await fetch(`https://hostelflow-production-e1ce.up.railway.app/admin/approve-fee/${id}`, {
         method: 'PUT'
       });
       if (res.ok) {

@@ -10,7 +10,7 @@ const WardenMess = () => {
   // 1. Menu Load Karein
   const loadMenu = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/warden/menu');
+      const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/warden/menu');
       const data = await res.json();
       setMenu(data);
     } catch (err) {
@@ -35,7 +35,7 @@ const WardenMess = () => {
     bodyData.append("dish", formData.dish);
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/warden/update-mess', {
+      const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/warden/update-mess', {
         method: 'POST',
         body: bodyData
       });

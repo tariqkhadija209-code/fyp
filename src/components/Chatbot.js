@@ -13,7 +13,7 @@ const Chatbot = ({ studentId }) => {
     setInput("");
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/chatbot', {
+      const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/chatbot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input, student_id: studentId })

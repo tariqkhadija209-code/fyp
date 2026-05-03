@@ -17,7 +17,7 @@ const StudentMess = () => {
     // 2. Fetch Mess Menu from Warden API
     const fetchMenu = async () => {
       try {
-        const res = await fetch('http://127.0.0.1:8000/warden/menu');
+        const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/warden/menu');
         const data = await res.json();
         setMenu(data);
       } catch (err) {
