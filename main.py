@@ -604,7 +604,7 @@ async def get_menu():
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
     try:
-        cursor.execute("SELECT * FROM Mess_Menu")
+        cursor.execute("SELECT * FROM mess_menu")
         return cursor.fetchall()
     finally:
         db.close()
