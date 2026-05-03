@@ -1,0 +1,55 @@
+/* Global Settings */
+body {
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f7f6;
+}
+
+/* 1. Main Wrapper - Sabse important fix */
+.dashboard-layout {
+  display: flex;
+  width: 100vw; /* Screen ki poori width */
+  min-height: 100vh;
+  overflow-x: hidden; 
+}
+
+/* 2. Sidebar - Fixed width ke sath */
+.sidebar {
+  width: 260px;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  background-color: #1a252f;
+  flex-shrink: 0; /* Sidebar ko dabne se rokta hai */
+  z-index: 1000;
+  box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+}
+
+/* 3. Content Area - Jo bachi hui jagah lega */
+.dashboard-content {
+  flex: 1; /* Ye bachi hui sari width le lega */
+  min-width: 0; /* Flexbox overlap fix */
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  
+}
+
+/* 4. Bootstrap Container-Fluid Fix */
+.container-fluid {
+  width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #18BC9C;
+  border-radius: 10px;
+}

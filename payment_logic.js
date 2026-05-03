@@ -26,7 +26,7 @@ form.addEventListener('submit', async (event) => {
     } else {
         if (paymentIntent.status === 'succeeded') {
             alert("Payment Successful! Fee Updated in Database.");
-            window.location.href = 'student_dashboard.html';
+            window.location.href = 'student_dashboard.js';
         }
     }
 });
