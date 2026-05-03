@@ -10,7 +10,7 @@ form.addEventListener('submit', async (event) => {
     event.preventDefault();
     
     // 1. Backend se "Payment Intent" mangwana
-    const response = await fetch('http://127.0.0.1:8000/create-payment-intent', { method: 'POST' });
+    const response = await fetch('https://hostelflow-production-e1ce.up.railway.app/create-payment-intent', { method: 'POST' });
     const { clientSecret } = await response.json();
 
     // 2. Stripe ke zariye payment confirm karna

@@ -18,12 +18,8 @@ cursor = connection.cursor()
 
 # Create table
 cursor.execute("""
-CREATE TABLE IF NOT EXISTS attendance (
-    attendance_id INT AUTO_INCREMENT PRIMARY KEY,
-    student_id INT,
-    status ENUM('Present','Absent') DEFAULT 'Present',
-    marked_date DATE
-)
+ALTER TABLE complaints
+MODIFY status VARCHAR(50);
 """)
 
 # Save changes
