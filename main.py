@@ -629,7 +629,7 @@ async def update_mess(day: str = Form(...), type: str = Form(...), dish: str = F
     db = get_db_connection()
     cursor = db.cursor()
     try:
-        cursor.execute("INSERT INTO Mess_Menu (day_of_week, meal_type, dish_name) VALUES (%s, %s, %s)", (day, type, dish))
+        cursor.execute("INSERT INTO mess_menu (day_of_week, meal_type, dish_name) VALUES (%s, %s, %s)", (day, type, dish))
         db.commit()
         return {"status": "success"}
     finally:
