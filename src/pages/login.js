@@ -1,50 +1,52 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { BASE_URL } from '../components/constant';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
+ const handleLogin = async (e) => {
+  e.preventDefault();
 
-        const params = new URLSearchParams();
-        params.append('email', email);
-        params.append('password', password);
+const credent = { email, password };
 
-        try {
-            const response = await fetch('https://hostelflow-production-e1ce.up.railway.app/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: params
-            });
 
-            const result = await response.json();
 
-            if (response.ok) {
-                localStorage.setItem('user', JSON.stringify(result));
-                
-                const role = result.role.trim().toLowerCase();
+  try {
+  const response = await fetch(`${BASE_URL}/login`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(credent)   // ✅ correct
+});
 
-                // React Routing ke mutabiq redirects
-                if (role === 'student') {
-                    navigate('/student/dashboard');
-                } else if (role === 'admin') {
-                    navigate('/admin/dashboard');
-                } else if (role === 'warden') {
-                    navigate('/warden/dashboard');
-                } else {
-                    alert("Logic Error: Role '" + role + "' matches nothing!");
-                }
-            } else {
-                alert("Login Failed: " + (result.detail || "Invalid credentials"));
-            }
-        } catch (error) {
-            console.error("Fetch Error:", error);
-            alert("Connection error! Backend check karein.");
-        }
-    };
+    const result = await response.json();
+    console.log("LOGIN RESPONSE:", result);
+
+    if (response.ok) {
+      localStorage.setItem('user', JSON.stringify(result));
+      localStorage.setItem('token', result.access_token);
+
+      const role = result.role.toLowerCase();
+
+      if (role === 'student') {
+        console.log("Student ID:", result.student_id); // ✅ check this
+        navigate('/student/dashboard');
+      }
+      if (role === 'admin') {
+        console.log("Student ID:", result.student_id); // ✅ check this
+        navigate('/admin/dashboard');
+      }
+      if (role === 'warden') {
+        console.log("Student ID:", result.student_id); // ✅ check this
+        navigate('/warden/dashboard');
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
 
     return (
         <div className="d-flex align-items-center justify-content-center vh-100" style={{ backgroundColor: '#2C3E50' }}>

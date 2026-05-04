@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-
+import { BASE_URL } from '../components/constant';
 const Chatbot = ({ studentId }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([{ text: "Hello! I am Hostelflow Assistant. How can I help you?", isBot: true }]);
@@ -7,13 +7,13 @@ const Chatbot = ({ studentId }) => {
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-    
+
     const newMsgs = [...messages, { text: input, isBot: false }];
     setMessages(newMsgs);
     setInput("");
 
     try {
-      const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/chatbot', {
+      const res = await fetch(`${BASE_URL}/chatbot`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input, student_id: studentId })
@@ -28,7 +28,7 @@ const Chatbot = ({ studentId }) => {
   return (
     <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000 }}>
       {/* 1. Chat Icon Button */}
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
         style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#1c2938', color: 'white', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}
       >
@@ -42,7 +42,7 @@ const Chatbot = ({ studentId }) => {
           <div style={{ background: '#1c2938', color: 'white', padding: '15px', fontWeight: 'bold' }}>
             HostelFlow AI Helper
           </div>
-          
+
           {/* Messages Area */}
           <div style={{ flex: 1, padding: '15px', overflowY: 'auto', background: '#f8f9fa' }}>
             {messages.map((msg, i) => (
@@ -56,11 +56,11 @@ const Chatbot = ({ studentId }) => {
 
           {/* Input Area */}
           <div style={{ padding: '10px', borderTop: '1px solid #ddd', display: 'flex' }}>
-            <input 
-              value={input} 
+            <input
+              value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-              placeholder="Ask Question..." 
+              placeholder="Ask Question..."
               style={{ flex: 1, border: 'none', outline: 'none', fontSize: '14px' }}
             />
             <button onClick={sendMessage} style={{ border: 'none', background: 'none', color: '#1c2938' }}>

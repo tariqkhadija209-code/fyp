@@ -1,13 +1,17 @@
 import os
 import mysql.connector
 from dotenv import load_dotenv
-from fastapi import FastAPI, Form, HTTPException
+from fastapi import FastAPI, Form, HTTPException, Depends, Security
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 import datetime
 import stripe
 import joblib 
 import pickle
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from fastapi.security import OAuth2PasswordBearer
+from typing import Optional, List
 
 # Model load karein
 ml_model = joblib.load('room_allocator.pkl')
@@ -37,6 +41,50 @@ app.add_middleware(
     allow_headers=["*"],
 )
 # --- DATABASE CONNECTION ---
+
+# --- SECURITY CONFIGURATION ---
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-it")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 24 hours
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+def create_access_token(data: dict, expires_delta: Optional[datetime.timedelta] = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.datetime.utcnow() + datetime.timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=401,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        role: str = payload.get("role")
+        user_id: int = payload.get("user_id")
+        if username is None:
+            raise credentials_exception
+        return {"username": username, "role": role, "user_id": user_id}
+    except JWTError:
+        raise credentials_exception
+
+class RoleChecker:
+    def __init__(self, allowed_roles: List[str]):
+        self.allowed_roles = allowed_roles
+
+    def __call__(self, user: dict = Depends(get_current_user)):
+        if user["role"] not in self.allowed_roles:
+            raise HTTPException(status_code=403, detail="Operation not permitted")
+        return user
 
 def get_db_connection():
     return mysql.connector.connect(
@@ -82,9 +130,16 @@ async def signup(
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         db.close()
+from pydantic import BaseModel
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
 
 @app.post("/login")
-async def login(email: str = Form(...), password: str = Form(...)):
+async def login(data: LoginRequest):
+    email = data.email
+    password = data.password
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
     try:
@@ -93,16 +148,22 @@ async def login(email: str = Form(...), password: str = Form(...)):
         user = cursor.fetchone()
 
         if user:
-            
+            # Simple password check (user is currently storing plain passwords based on main.py line 68)
+            # If they move to hashed passwords later, use pwd_context.verify(password, user['password_hash'])
             if user['password_hash'] == password:
+                access_token = create_access_token(
+                    data={"sub": user['username'], "role": user['role'], "user_id": user['user_id']}
+                )
+                
                 response_data = {
                     "status": "success",
+                    "access_token": access_token,
+                    "token_type": "bearer",
                     "user_id": user['user_id'],
                     "username": user['username'],
                     "role": user['role']
                 }
 
-               
                 if user['role'] == 'Student':
                     cursor.execute("SELECT student_id FROM students WHERE user_id = %s", (user['user_id'],))
                     student = cursor.fetchone()
@@ -148,8 +209,8 @@ async def create_checkout_session(data: CheckoutRequest):
                 'quantity': 1,
             }],
             mode='payment',
-            success_url=f"https://hostelflow-production-e1ce.up.railway.app/payment-success?fee_id={fee_id}",
-            cancel_url="https://hostelflow-production-e1ce.up.railway.app/payment-cancelled",
+            success_url=f"/payment-success?fee_id={fee_id}",
+            cancel_url="/payment-cancelled",
         )
 
         return {"url": session.url}
@@ -191,7 +252,7 @@ async def get_admin_stats():
     finally:
         db.close()
 
-@app.get("/admin/rooms")
+@app.get("/admin/rooms", )
 async def get_rooms():
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
@@ -204,7 +265,7 @@ async def get_rooms():
 
 
 
-@app.post("/admin/allocate-room-ai/{student_id}")
+@app.post("/admin/allocate-room-ai/{student_id}", )
 async def allocate_room_ai(student_id: int):
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
@@ -262,7 +323,7 @@ async def allocate_room_ai(student_id: int):
         if db:
             db.close()
 
-@app.post("/admin/add-room")
+@app.post("/admin/add-room", )
 async def add_room(
     room_no: str = Form(...), 
     block: str = Form(...), 
@@ -286,7 +347,7 @@ async def add_room(
         db.close()   
 
 
-@app.get("/admin/pending-students")
+@app.get("/admin/pending-students", )
 async def get_pending_students():
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
@@ -301,7 +362,7 @@ async def get_pending_students():
     finally:
         db.close()
 
-@app.get("/admin/complaints")
+@app.get("/admin/complaints", )
 async def get_admin_complaints():
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
@@ -325,7 +386,7 @@ async def get_admin_complaints():
     finally:
         db.close()
 
-@app.delete("/admin/resolve-complaint/{complaint_id}")
+@app.delete("/admin/resolve-complaint/{complaint_id}", )
 async def resolve_complaint(complaint_id: int):
     db = get_db_connection()
     cursor = db.cursor()
@@ -336,7 +397,7 @@ async def resolve_complaint(complaint_id: int):
     finally:
         db.close()
 
-@app.post("/admin/generate-fees")
+@app.post("/admin/generate-fees", )
 async def generate_fees(billing_month: str = Form(...), amount: float = Form(...)):
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
@@ -368,7 +429,7 @@ async def generate_fees(billing_month: str = Form(...), amount: float = Form(...
     finally:
         db.close()
 
-@app.get("/admin/get-all-fees")
+@app.get("/admin/get-all-fees", )
 async def get_all_fees():
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
@@ -380,7 +441,7 @@ async def get_all_fees():
     finally:
         db.close()     
 
-@app.get("/admin/fees-summary")
+@app.get("/admin/fees-summary", )
 async def fees_summary():
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
@@ -405,7 +466,7 @@ async def fees_summary():
     finally:
         db.close()
 
-@app.post("/admin/approve-fee/{fee_id}")
+@app.post("/admin/approve-fee/{fee_id}", )
 async def approve_fee(fee_id: int):
     db = get_db_connection()
     cursor = db.cursor()
@@ -418,7 +479,7 @@ async def approve_fee(fee_id: int):
         db.close()
 
 
-@app.post("/admin/allocate-room")
+@app.post("/admin/allocate-room", )
 async def allocate_room(student_id: int, room_id: int):
     db = get_db_connection()
     cursor = db.cursor()
@@ -588,7 +649,7 @@ async def suggest_room(department: str):
 
 
 # --- 5. WARDEN & MESS SECTION (RESTORED) ---
-@app.get("/warden/stats")
+@app.get("/warden/stats", dependencies=[Depends(RoleChecker(["Warden", "Admin"]))])
 async def get_warden_stats():
     db = get_db_connection()
     cursor = db.cursor()
@@ -600,7 +661,7 @@ async def get_warden_stats():
     finally:
         db.close()
 
-@app.get("/warden/attendance")
+@app.get("/warden/attendance", dependencies=[Depends(RoleChecker(["Warden", "Admin"]))])
 async def get_warden_attendance():
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
@@ -620,7 +681,7 @@ async def get_warden_attendance():
     finally:
         db.close()
 
-@app.get("/warden/menu")
+@app.get("/warden/menu", dependencies=[Depends(RoleChecker(["Warden", "Admin"]))])
 async def get_menu():
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
@@ -630,7 +691,7 @@ async def get_menu():
     finally:
         db.close()
 
-@app.post("/warden/send-notification")
+@app.post("/warden/send-notification", dependencies=[Depends(RoleChecker(["Warden", "Admin"]))])
 async def send_notification(title: str = Form(...), message: str = Form(...)):
     db = get_db_connection()
     cursor = db.cursor()
@@ -645,7 +706,7 @@ async def send_notification(title: str = Form(...), message: str = Form(...)):
     finally:
         db.close()        
 
-@app.post("/warden/update-mess")
+@app.post("/warden/update-mess", dependencies=[Depends(RoleChecker(["Warden", "Admin"]))])
 async def update_mess(day: str = Form(...), type: str = Form(...), dish: str = Form(...)):
     db = get_db_connection()
     cursor = db.cursor()

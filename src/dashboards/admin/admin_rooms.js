@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-
+import {BASE_URL} from '../../components/constant'
 const AdminRooms = () => {
   const [rooms, setRooms] = useState([]);
   const [pendingStudents, setPendingStudents] = useState([]);
@@ -11,8 +11,8 @@ const AdminRooms = () => {
     try {
       // Dono APIs ko ek sath call karein
       const [roomRes, studentRes] = await Promise.all([
-        fetch('https://hostelflow-production-e1ce.up.railway.app/admin/rooms'),
-        fetch('https://hostelflow-production-e1ce.up.railway.app/admin/pending-students')
+        fetch(`${BASE_URL}/admin/rooms`),
+        fetch(`${BASE_URL}/admin/pending-students`)
       ]);
 
       const roomData = await roomRes.json();
@@ -30,29 +30,40 @@ const AdminRooms = () => {
   }, []);
 
   // 2. Naya Room Add karne ka Function
-  const handleAddRoom = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/admin/add-room', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newRoom)
-      });
-      if (res.ok) {
-        alert("Room Added!");
-        fetchData(); // List refresh karein
-      }
-    } catch (err) {
-      alert("Error adding room");
+const handleAddRoom = async (e) => {
+  e.preventDefault();
+
+  const formData = new FormData();
+  formData.append("room_no", newRoom.room_no);
+  formData.append("block", newRoom.block);
+  formData.append("capacity", newRoom.capacity);
+  formData.append("wing", newRoom.wing);
+
+  try {
+    const res = await fetch(`${BASE_URL}/admin/add-room`, {
+      method: 'POST',
+      body: formData   // ✅ no headers
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("Room Added!");
+      fetchData();
+    } else {
+      alert(data.message);
     }
-  };
+  } catch (err) {
+    alert("Error adding room");
+  }
+};
 
   // 3. AI Allocation Run karne ka Function
   const runAI = async (id) => {
     if (!window.confirm("AI Allocation shuru karein?")) return;
     try {
-      const res = await fetch(`https://hostelflow-production-e1ce.up.railway.app/admin/allocate-room-ai/${id}`, { 
-        method: 'POST' 
+      const res = await fetch(`${BASE_URL}/admin/allocate-room-ai/${id}`, {
+        method: 'POST'
       });
       const data = await res.json();
       alert(data.message);
@@ -76,33 +87,33 @@ const AdminRooms = () => {
 
       {/* Main Content */}
       <div style={{ marginLeft: '250px', padding: '30px', width: '100%', minHeight: '100vh', background: '#f4f7f6' }}>
-        
+
         {/* Form: Add New Room */}
         <h3 className="fw-bold mb-3">Add New Room</h3>
         <div className="card border-0 p-4 shadow-sm mb-5 rounded-4">
           <form onSubmit={handleAddRoom} className="row g-3">
             <div className="col-md-3">
               <label className="form-label small fw-bold">Room Number</label>
-              <input 
-                type="text" 
-                className="form-control" 
-                required 
-                onChange={(e) => setNewRoom({...newRoom, room_no: e.target.value})}
+              <input
+                type="text"
+                className="form-control"
+                required
+                onChange={(e) => setNewRoom({ ...newRoom, room_no: e.target.value })}
               />
             </div>
             <div className="col-md-3">
               <label className="form-label small fw-bold">Capacity</label>
-              <input 
-                type="number" 
-                className="form-control" 
-                defaultValue="3" 
-                required 
-                onChange={(e) => setNewRoom({...newRoom, capacity: e.target.value})}
+              <input
+                type="number"
+                className="form-control"
+                defaultValue="3"
+                required
+                onChange={(e) => setNewRoom({ ...newRoom, capacity: e.target.value })}
               />
             </div>
             <div className="col-md-3">
               <label className="form-label small fw-bold">Block</label>
-              <select className="form-select" onChange={(e) => setNewRoom({...newRoom, block: e.target.value})}>
+              <select className="form-select" onChange={(e) => setNewRoom({ ...newRoom, block: e.target.value })}>
                 <option value="A">Block A</option>
                 <option value="B">Block B</option>
                 <option value="C">Block C</option>
@@ -149,7 +160,7 @@ const AdminRooms = () => {
         {/* Table: AI Pending Allocations */}
         <h3 className="text-primary fw-bold mb-1"><i className="bi bi-robot"></i> Pending AI Allocations</h3>
         <p className="text-muted mb-4">Assign the block to students with AI.</p>
-        
+
         <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
           <table className="table table-hover mb-0 text-center">
             <thead className="table-info">

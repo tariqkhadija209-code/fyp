@@ -32,7 +32,7 @@ const Home = () => {
           </motion.p>
 
           <div className="d-flex justify-content-center gap-3">
-            <Link to="/contact" className="btn btn-primary btn-lg rounded-pill px-5 shadow">Apply Now</Link>
+            <Link to="/login" className="btn btn-primary btn-lg rounded-pill px-5 shadow">Apply Now</Link>
             <Link to="/about" className="btn btn-outline-light btn-lg rounded-pill px-5">Explore More</Link>
           </div>
         </div>

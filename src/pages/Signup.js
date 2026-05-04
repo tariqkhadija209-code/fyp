@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { BASE_URL } from '../components/constant';
 
 const Signup = () => {
     const navigate = useNavigate();
@@ -23,7 +24,7 @@ const Signup = () => {
         Object.keys(formData).forEach(key => params.append(key, formData[key]));
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/signup', {
+            const response = await fetch(`${BASE_URL}/signup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: params

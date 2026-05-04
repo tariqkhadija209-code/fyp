@@ -5,7 +5,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Chatbot from './components/Chatbot';
+import ProtectedRoute from './components/ProtectedRoute';
 
+import { BASE_URL } from './components/constant';
 
 // --- PAGES ---
 import Home from './pages/Home';
@@ -63,44 +65,50 @@ const AppContent = () => {
 
           {/* STUDENT DASHBOARD LAYOUT */}
           <Route path="/student/*" element={
-            <div className="dashboard-layout">
-              <div className="dashboard-content">
-                <Routes>
-                  <Route path="dashboard" element={<StudentDashboard />} />
-                  <Route path="attendance" element={<StudentAttendance />} />
-                  <Route path="complaints" element={<StudentComplaints />} />
-                  <Route path="fees" element={<StudentFees />} />
-                  <Route path="mess" element={<StudentMess />} />
-                </Routes>
+            <ProtectedRoute allowedRoles={['Student']}>
+              <div className="dashboard-layout">
+                <div className="dashboard-content">
+                  <Routes>
+                    <Route path="dashboard" element={<StudentDashboard />} />
+                    <Route path="attendance" element={<StudentAttendance />} />
+                    <Route path="complaints" element={<StudentComplaints />} />
+                    <Route path="fees" element={<StudentFees />} />
+                    <Route path="mess" element={<StudentMess />} />
+                  </Routes>
+                </div>
               </div>
-            </div>
+            </ProtectedRoute>
           } />
 
           {/* WARDEN DASHBOARD LAYOUT */}
           <Route path="/warden/*" element={
-            <div className="dashboard-layout">
-              <div className="dashboard-content">
-                <Routes>
-                  <Route path="dashboard" element={<WardenDashboard />} />
-                  <Route path="attendance" element={<WardenAttendance />} />
-                  <Route path="mess" element={<WardenMess />} />
-                </Routes>
+            <ProtectedRoute allowedRoles={['Warden', 'Admin']}>
+              <div className="dashboard-layout">
+                <div className="dashboard-content">
+                  <Routes>
+                    <Route path="dashboard" element={<WardenDashboard />} />
+                    <Route path="attendance" element={<WardenAttendance />} />
+                    <Route path="mess" element={<WardenMess />} />
+                  </Routes>
+                </div>
               </div>
-            </div>
+            </ProtectedRoute>
           } />
 
           {/* ADMIN DASHBOARD LAYOUT */}
           <Route path="/admin/*" element={
-            <div className="dashboard-layout">
-              <div className="dashboard-content">
-                <Routes>
-                  <Route path="dashboard" element={<AdminDashboard />} />
-                  <Route path="complaints" element={<AdminComplaints />} />
-                  <Route path="fees" element={<AdminFees />} />
-                  <Route path="rooms" element={<AdminRooms />} />
-                </Routes>
+            <ProtectedRoute allowedRoles={['Admin']}>
+              <div className="dashboard-layout">
+                <div className="dashboard-content">
+                  <Routes>
+                    <Route path="dashboard" element={<AdminDashboard />} />
+                    <Route path="complaints" element={<AdminComplaints />} />
+                    <Route path="fees" element={<AdminFees />} />
+                    <Route path="rooms" element={<AdminRooms />} />
+                  </Routes>
+                </div>
               </div>
-            </div>
+            </ProtectedRoute>
           } />
 
           <Route path="*" element={<Navigate to="/" />} />

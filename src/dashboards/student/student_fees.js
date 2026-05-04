@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { BASE_URL } from '../../components/constant';
 
 const StudentFees = () => {
   const [fees, setFees] = useState([]);
@@ -17,7 +18,10 @@ const StudentFees = () => {
 
     const fetchFees = async () => {
       try {
-        const res = await fetch(`https://hostelflow-production-e1ce.up.railway.app/student/fees/${user.student_id}`);
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${BASE_URL}/student/fees/${user.student_id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         const data = await res.json();
         setFees(data);
       } catch (err) {
@@ -38,8 +42,8 @@ const StudentFees = () => {
   }, [navigate]);
 
   // 2. Stripe Checkout Function
- const handlePayment = async (feeId, amount) => {
-    if(!feeId || !amount) {
+  const handlePayment = async (feeId, amount) => {
+    if (!feeId || !amount) {
       alert("Payment Error: Missing fee details.");
       return;
     }
@@ -49,14 +53,16 @@ const StudentFees = () => {
         fee_id: feeId,
         amount: amount
       };
-      
 
-      const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/student/create-checkout-session', {
+
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${BASE_URL}/student/create-checkout-session`, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json' // Backend ko batayein ke ye JSON hai
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(paymentData) // Data ko string mein convert karein
+        body: JSON.stringify(paymentData)
       });
 
       const data = await res.json();
@@ -64,7 +70,7 @@ const StudentFees = () => {
 
       if (data.url) {
         // 2. Agar backend se URL mil gaya hai toh redirect karein
-        window.location.href = data.url; 
+        window.location.href = data.url;
       } else {
         // Agar response mein URL nahi hai toh console mein check karein kya aaya
         console.error("Backend Error Response:", data);
@@ -86,13 +92,16 @@ const StudentFees = () => {
         <Link to="/student/mess" style={linkStyle}>Mess Menu</Link>
         <Link to="/student/fees" style={{ ...linkStyle, background: '#3498db', color: 'white' }}>Fee Status</Link>
         <Link to="/student/complaints" style={linkStyle}>My Complaints</Link>
-        <Link to="/login" className="text-danger mt-5" style={linkStyle}>Logout</Link>
+        <Link to="/login" className="text-danger mt-5" style={linkStyle} onClick={() => {
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+        }}>Logout</Link>
       </div>
 
       {/* Main Content */}
       <div style={{ marginLeft: '250px', padding: '40px', width: '100%', minHeight: '100vh', background: '#f4f7f6' }}>
         <h2 className="fw-bold mb-4">My Fee History</h2>
-        
+
         <div className="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
           <table className="table align-middle text-center mb-0">
             <thead className="table-light">
@@ -120,7 +129,7 @@ const StudentFees = () => {
                     </td>
                     <td>
                       {f.status === 'Unpaid' ? (
-                        <button 
+                        <button
                           className="btn btn-primary btn-sm rounded-pill px-3 shadow-sm"
                           onClick={() => handlePayment(f.fee_id, f.amount)}
                         >

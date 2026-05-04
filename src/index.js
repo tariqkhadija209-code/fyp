@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 // Global CSS Imports (Inka yahan hona zaroori hai taake poori website par apply hon)
 import 'bootstrap/dist/css/bootstrap.min.css'; 
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import './App.css'; 
 
 // FontAwesome ko global access denay ke liye (Icons ke liye)

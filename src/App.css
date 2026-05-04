@@ -28,11 +28,45 @@ body {
 
 /* 3. Content Area - Jo bachi hui jagah lega */
 .dashboard-content {
-  flex: 1; /* Ye bachi hui sari width le lega */
-  min-width: 0; /* Flexbox overlap fix */
+  flex: 1;
+  min-width: 0;
   background-color: #f8f9fa;
   min-height: 100vh;
-  
+  transition: all 0.3s;
+}
+
+/* Responsive Sidebar */
+@media (max-width: 992px) {
+  .sidebar {
+    position: fixed;
+    left: -260px;
+    transition: all 0.3s;
+  }
+  .sidebar.show {
+    left: 0;
+  }
+  .dashboard-content {
+    margin-left: 0 !important;
+  }
+}
+
+.sidebar-toggle {
+  display: none;
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 1100;
+  background: #1a252f;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+@media (max-width: 992px) {
+  .sidebar-toggle {
+    display: block;
+  }
 }
 
 /* 4. Bootstrap Container-Fluid Fix */

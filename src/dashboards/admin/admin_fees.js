@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-
+import { BASE_URL } from '../../components/constant';
 const AdminFees = () => {
   const [fees, setFees] = useState([]);
   const [genData, setGenData] = useState({ amount: '', month: '', type: 'Hostel Fee' });
@@ -8,7 +8,7 @@ const AdminFees = () => {
   // 1. Load Fees from Backend
   const loadFees = async () => {
     try {
-      const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/admin/fees-summary');
+      const res = await fetch(`${BASE_URL}/admin/fees-summary`);
       const data = await res.json();
       setFees(data);
     } catch (err) {
@@ -33,14 +33,14 @@ const AdminFees = () => {
       formData.append('billing_month', genData.month); // Backend field name match kar diya
       formData.append('amount', genData.amount);
 
-      const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/admin/generate-fees', {
+      const res = await fetch(`${BASE_URL}/admin/generate-fees`, {
         method: 'POST',
         // Note: Headers mein Content-Type nahi lagana, browser khud boundary set karega
         body: formData
       });
 
       const result = await res.json();
-      
+
       if (res.ok) {
         alert(result.message || "Fees Generated Successfully");
         loadFees(); // Table refresh karein
@@ -57,7 +57,7 @@ const AdminFees = () => {
   // 3. Approve / Mark as Paid
   const approveFee = async (id) => {
     try {
-      const res = await fetch(`https://hostelflow-production-e1ce.up.railway.app/admin/approve-fee/${id}`, {
+      const res = await fetch(`${BASE_URL}/admin/approve-fee/${id}`, {
         method: 'PUT'
       });
       if (res.ok) {
@@ -89,25 +89,25 @@ const AdminFees = () => {
           <h5 className="mb-3 text-secondary fw-bold">Generate Monthly Fees</h5>
           <div className="row g-3">
             <div className="col-md-3">
-              <input 
-                type="number" 
-                className="form-control" 
-                placeholder="Amount (e.g. 10000)" 
+              <input
+                type="number"
+                className="form-control"
+                placeholder="Amount (e.g. 10000)"
                 value={genData.amount}
-                onChange={(e) => setGenData({...genData, amount: e.target.value})}
+                onChange={(e) => setGenData({ ...genData, amount: e.target.value })}
               />
             </div>
             <div className="col-md-3">
-              <input 
-                type="text" 
-                className="form-control" 
-                placeholder="Month (e.g. May 2026)" 
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Month (e.g. May 2026)"
                 value={genData.month}
-                onChange={(e) => setGenData({...genData, month: e.target.value})}
+                onChange={(e) => setGenData({ ...genData, month: e.target.value })}
               />
             </div>
             <div className="col-md-3">
-              <select className="form-select" onChange={(e) => setGenData({...genData, type: e.target.value})}>
+              <select className="form-select" onChange={(e) => setGenData({ ...genData, type: e.target.value })}>
                 <option value="Hostel Fee">Hostel Fee</option>
               </select>
             </div>
@@ -145,8 +145,8 @@ const AdminFees = () => {
                       {f.status === 'Paid' ? (
                         <small className="text-muted">Payment Cleared</small>
                       ) : (
-                        <button 
-                          className="btn btn-sm btn-outline-primary rounded-pill px-3" 
+                        <button
+                          className="btn btn-sm btn-outline-primary rounded-pill px-3"
                           onClick={() => approveFee(f.fee_id)}
                         >
                           Mark as Paid

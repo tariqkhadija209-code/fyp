@@ -17,7 +17,7 @@ const StudentMess = () => {
     // 2. Fetch Mess Menu from Warden API
     const fetchMenu = async () => {
       try {
-        const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/warden/menu');
+        const res = await fetch('/warden/menu');
         const data = await res.json();
         setMenu(data);
       } catch (err) {
@@ -46,7 +46,7 @@ const StudentMess = () => {
       {/* Main Content Section */}
       <div style={{ marginLeft: '250px', padding: '30px', width: '100%', minHeight: '100vh', background: '#f0f2f5' }}>
         <h3 className="mb-4 fw-bold"><i className="bi bi-egg-fried me-2 text-primary"></i> Weekly Mess Menu</h3>
-        
+
         {loading ? (
           <div className="text-center mt-5">
             <div className="spinner-border text-primary" role="status"></div>
@@ -72,7 +72,7 @@ const StudentMess = () => {
                     <h5 className="fw-bold mb-2 text-dark">{m.dish_name}</h5>
                     <div className="mt-auto pt-3 border-top">
                       <small className="text-muted">
-                        <i className="bi bi-fire me-1 text-danger"></i> 
+                        <i className="bi bi-fire me-1 text-danger"></i>
                         {m.calories || '---'} Calories
                       </small>
                     </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
+import { BASE_URL } from '../../components/constant';
 const StudentComplaints = () => {
   const [complaintData, setComplaintData] = useState({ type: '', desc: '' });
   const [loading, setLoading] = useState(false);
@@ -9,7 +9,7 @@ const StudentComplaints = () => {
   // 1. Submit Function
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const userStr = localStorage.getItem('user');
     if (!userStr) {
       alert("Session expired. Please login again.");
@@ -34,7 +34,7 @@ const StudentComplaints = () => {
     formData.append("student_id", finalStudentId);
 
     try {
-      const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/student/add-complaint', {
+      const res = await fetch(`${BASE_URL}/student/add-complaint`, {
         method: 'POST',
         body: formData
       });
@@ -73,35 +73,35 @@ const StudentComplaints = () => {
       {/* Main Content */}
       <div style={{ marginLeft: '250px', padding: '30px', width: '100%', minHeight: '100vh', background: '#f0f2f5' }}>
         <h3 className="fw-bold mb-4">Submit a New Complaint</h3>
-        
+
         <div className="card p-4 border-0 shadow-sm rounded-4 bg-white" style={{ maxWidth: '600px' }}>
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
               <label className="form-label small fw-bold text-muted">Issue Type</label>
-              <input 
-                type="text" 
-                className="form-control" 
+              <input
+                type="text"
+                className="form-control"
                 placeholder="e.g., Water, Mess, Electricity"
                 value={complaintData.type}
-                onChange={(e) => setComplaintData({...complaintData, type: e.target.value})}
-                required 
+                onChange={(e) => setComplaintData({ ...complaintData, type: e.target.value })}
+                required
               />
             </div>
 
             <div className="mb-3">
               <label className="form-label small fw-bold text-muted">Description</label>
-              <textarea 
-                className="form-control" 
-                placeholder="Describe your issue in detail..." 
+              <textarea
+                className="form-control"
+                placeholder="Describe your issue in detail..."
                 rows="4"
                 value={complaintData.desc}
-                onChange={(e) => setComplaintData({...complaintData, desc: e.target.value})}
+                onChange={(e) => setComplaintData({ ...complaintData, desc: e.target.value })}
                 required
               ></textarea>
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="btn btn-primary w-100 fw-bold rounded-pill"
               disabled={loading}
             >

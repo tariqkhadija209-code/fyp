@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-
+import { BASE_URL } from '../../components/constant';
 const AdminDashboard = () => {
+  const [showSidebar, setShowSidebar] = useState(false);
   // State for dynamic stats
   const [stats, setStats] = useState({
     total_rooms: '--',
@@ -13,7 +14,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const loadStats = async () => {
       try {
-        const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/admin/stats');
+        const res = await fetch(`${BASE_URL}/admin/stats`);
         const data = await res.json();
         setStats(data);
       } catch (e) {
@@ -26,7 +27,7 @@ const AdminDashboard = () => {
   // AI Allocation logic
   const triggerAIAllocation = async (id) => {
     try {
-      const res = await fetch(`https://hostelflow-production-e1ce.up.railway.app/admin/allocate-room-ai/${id}`, { method: 'POST' });
+      const res = await fetch(`${BASE_URL}/admin/allocate-room-ai/${id}`, { method: 'POST' });
       const data = await res.json();
       alert(data.message);
       window.location.reload();
@@ -37,8 +38,13 @@ const AdminDashboard = () => {
 
   return (
     <div className="d-flex">
+      {/* Sidebar Toggle Button */}
+      <button className="sidebar-toggle shadow" onClick={() => setShowSidebar(!showSidebar)}>
+        <i className={`bi bi-${showSidebar ? 'x' : 'list'}`}></i>
+      </button>
+
       {/* 1. Sidebar (React Style) */}
-      <div style={sidebarStyle} className="sidebar shadow">
+      <div style={sidebarStyle} className={`sidebar shadow ${showSidebar ? 'show' : ''}`}>
         <h4 className="text-center py-4 text-white border-bottom border-secondary">Admin Panel</h4>
         <Link to="/admin/dashboard" style={linkStyle}><i className="bi bi-speedometer2 me-2"></i> Overview</Link>
         <Link to="/admin/rooms" style={linkStyle}><i className="bi bi-door-open me-2"></i> Room Management</Link>
@@ -49,12 +55,11 @@ const AdminDashboard = () => {
 
       {/* 2. Main Content */}
       <div style={{
-        marginLeft: '250px',
         padding: '30px',
         flexGrow: 1,
         minHeight: '100vh',
         backgroundColor: '#f8f9fa'
-      }}>
+      }} className="dashboard-content">
         <div className="container-fluid">
           <h2 className="mb-4 fw-bold text-dark">System Overview</h2>
 
@@ -96,7 +101,6 @@ const sidebarStyle = {
   height: '100vh',
   background: '#2C3E50',
   color: 'white',
-  position: 'fixed',
   width: '250px',
 };
 

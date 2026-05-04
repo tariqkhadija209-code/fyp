@@ -8,4 +8,6 @@ scikit-learn
 google-generativeai
 python-multipart
 python-multipart
+python-jose[cryptography]
+passlib[bcrypt]
 

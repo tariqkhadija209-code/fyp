@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
+import { BASE_URL } from '../../components/constant';
 const StudentAttendance = () => {
   const [statusMsg, setStatusMsg] = useState("");
   const [isMarked, setIsMarked] = useState(false);
@@ -22,10 +22,10 @@ const StudentAttendance = () => {
   const markAttendance = async () => {
     const userStr = localStorage.getItem('user');
     const user = JSON.parse(userStr);
-    
+
     // Student ID handle karein
     const finalId = user.student_id || user.user_id;
-    
+
     setLoading(true);
     setStatusMsg("");
 
@@ -34,13 +34,13 @@ const StudentAttendance = () => {
     formData.append("status", "Present");
 
     try {
-      const response = await fetch('https://hostelflow-production-e1ce.up.railway.app/student/mark-attendance', {
+      const response = await fetch(`${BASE_URL}/student/mark-attendance`, {
         method: 'POST',
-        body: formData 
+        body: formData
       });
 
       const result = await response.json();
-      
+
       if (response.ok && result.status === "success") {
         alert("✅ Attendance Marked Successfully!");
         setIsMarked(true);
@@ -72,12 +72,12 @@ const StudentAttendance = () => {
       {/* Main Content Section */}
       <div style={{ marginLeft: '250px', padding: '30px', width: '100%', minHeight: '100vh', background: '#f0f2f5' }}>
         <h3 className="fw-bold">Daily Presence</h3>
-        
+
         <div className="card p-5 text-center shadow-sm border-0 mt-4 rounded-4 bg-white">
           <h4 className="text-muted mb-4">{today}</h4>
-          
+
           <div id="attendance-area">
-            <button 
+            <button
               className={`btn btn-lg w-50 mx-auto rounded-pill fw-bold ${isMarked ? 'btn-secondary disabled' : 'btn-success'}`}
               onClick={markAttendance}
               disabled={isMarked || loading}
@@ -85,7 +85,7 @@ const StudentAttendance = () => {
               {loading ? "Syncing with Server..." : isMarked ? "Already Marked" : "Mark Me Present"}
             </button>
           </div>
-          
+
           {statusMsg && (
             <div className={`mt-4 fw-bold ${statusMsg.includes('❌') ? 'text-danger' : 'text-success'}`}>
               {statusMsg}

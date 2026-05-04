@@ -1,16 +1,17 @@
 // Stripe ki Public Key yahan ayegi
-const stripe = Stripe('your_publishable_key_here'); 
+const stripe = Stripe('your_publishable_key_here');
 const elements = stripe.elements();
 const cardElement = elements.create('card');
 cardElement.mount('#card-element');
+import { BASE_URL } from '../components/constant';
 
 const form = document.getElementById('payment-form');
 
 form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    
+
     // 1. Backend se "Payment Intent" mangwana
-    const response = await fetch('https://hostelflow-production-e1ce.up.railway.app/create-payment-intent', { method: 'POST' });
+    const response = await fetch(`${BASE_URL}/create-payment-intent`, { method: 'POST' });
     const { clientSecret } = await response.json();
 
     // 2. Stripe ke zariye payment confirm karna

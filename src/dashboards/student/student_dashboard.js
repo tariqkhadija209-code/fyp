@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { BASE_URL } from '../../components/constant';
 
 const StudentDashboard = () => {
   const [user, setUser] = useState(null);
   const [roomDetails, setRoomDetails] = useState({ no: 'Checking...', block: '---', wing: 'Loading...' });
   const [notifications, setNotifications] = useState([]);
+  const [showSidebar, setShowSidebar] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,8 +21,11 @@ const StudentDashboard = () => {
     // 2. Load Data
     const loadDashboardData = async () => {
       try {
+        const token = localStorage.getItem('token');
         // Fetch Room Details
-        const roomRes = await fetch(`https://hostelflow-production-e1ce.up.railway.app/student/room-details/${storedUser.student_id}`);
+        const roomRes = await fetch(`${BASE_URL}/student/room-details/${storedUser.student_id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         const roomData = await roomRes.json();
 
         if (roomData.status === "success") {
@@ -34,9 +39,11 @@ const StudentDashboard = () => {
         }
 
         // Fetch Notifications (Synchronization point)
-        const notifRes = await fetch('https://hostelflow-production-e1ce.up.railway.app/student/notifications');
+        const notifRes = await fetch(`${BASE_URL}/student/notifications`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         const notifData = await notifRes.json();
-        
+
         // Ensure notifData is an array before setting state
         setNotifications(Array.isArray(notifData) ? notifData : []);
 
@@ -50,13 +57,19 @@ const StudentDashboard = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
     navigate('/login');
   };
 
   return (
     <div className="d-flex">
+      {/* Sidebar Toggle Button */}
+      <button className="sidebar-toggle shadow" onClick={() => setShowSidebar(!showSidebar)}>
+        <i className={`bi bi-${showSidebar ? 'x' : 'list'}`}></i>
+      </button>
+
       {/* Sidebar Section */}
-      <div style={sidebarStyle} className="sidebar shadow">
+      <div style={sidebarStyle} className={`sidebar shadow ${showSidebar ? 'show' : ''}`}>
         <h4 className="text-center py-4 text-white">Student Panel</h4>
         <Link to="/student/dashboard" style={{ ...linkStyle, background: '#3498db', color: 'white' }}>
           <i className="bi bi-house-door me-2"></i> Home
@@ -71,8 +84,8 @@ const StudentDashboard = () => {
       </div>
 
       {/* Main Content Section */}
-      <div style={{ marginLeft: '250px', padding: '30px', width: '100%', minHeight: '100vh', background: '#f0f2f5' }}>
-        
+      <div style={{ padding: '30px', width: '100%', minHeight: '100vh', background: '#f0f2f5' }} className="dashboard-content">
+
         {/* Welcome Card */}
         <div className="card welcome-card p-4 mb-4 shadow border-0" style={welcomeCardStyle}>
           <h2 className="fw-bold">Welcome, {user ? user.username : 'Student'}!</h2>
@@ -106,7 +119,7 @@ const StudentDashboard = () => {
               <h6 className="text-primary fw-bold"><i className="bi bi-door-open-fill me-2"></i> Room Details</h6>
               <hr />
               <p className="small mb-2">
-                <strong>Room No:</strong> 
+                <strong>Room No:</strong>
                 <span className={`badge ms-2 ${roomDetails.no.includes('Pending') ? 'bg-warning text-dark' : 'bg-success'}`}>
                   {roomDetails.no}
                 </span>
@@ -122,7 +135,7 @@ const StudentDashboard = () => {
 };
 
 // Internal Styling remains same
-const sidebarStyle = { height: '100vh', background: '#1c2938', color: 'white', position: 'fixed', width: '250px' };
+const sidebarStyle = { height: '100vh', background: '#1c2938', color: 'white', width: '250px' };
 const linkStyle = { color: '#adb5bd', textDecoration: 'none', display: 'block', padding: '15px 20px', borderBottom: '1px solid #2c3e50', transition: '0.3s' };
 const welcomeCardStyle = { background: 'linear-gradient(135deg, #3498db, #1abc9c)', color: 'white', borderRadius: '15px' };
 

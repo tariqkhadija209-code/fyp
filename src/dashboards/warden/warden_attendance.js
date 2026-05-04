@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { BASE_URL } from '../../components/constant';
 
 const WardenAttendance = () => {
   const [attendance, setAttendance] = useState([]);
@@ -11,13 +12,16 @@ const WardenAttendance = () => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user || user.role !== 'warden') {
       // navigate('/login'); 
-     
+
     }
 
     // 2. Fetch All Attendance for Warden
     const fetchAttendance = async () => {
       try {
-        const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/warden/attendance');
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${BASE_URL}/warden/attendance`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         const data = await res.json();
         console.log("Warden Attendance Data:", data);
         setAttendance(data);
@@ -39,7 +43,10 @@ const WardenAttendance = () => {
         <Link to="/warden/dashboard" style={linkStyle}>Overview</Link>
         <Link to="/warden/attendance" style={{ ...linkStyle, background: '#f39c12', color: 'white' }}>View Attendance</Link>
         <Link to="/warden/mess" style={linkStyle}>Manage Mess</Link>
-        <Link to="/login" className="text-danger mt-5" style={linkStyle}>Logout</Link>
+        <Link to="/login" className="text-danger mt-5" style={linkStyle} onClick={() => {
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+        }}>Logout</Link>
       </div>
 
       {/* Main Content */}

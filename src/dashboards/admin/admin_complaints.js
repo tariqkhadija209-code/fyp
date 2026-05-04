@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-
+import { BASE_URL } from '../../components/constant';
 const AdminComplaints = () => {
   const [complaints, setComplaints] = useState([]);
 
   // Complaints load karne ka function
   const loadComplaints = async () => {
     try {
-      const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/admin/complaints');
+      const res = await fetch(`${BASE_URL}/admin/complaints`);
       const data = await res.json();
       setComplaints(data);
     } catch (error) {
@@ -23,8 +23,7 @@ const AdminComplaints = () => {
   const resolveComplaint = async (id) => {
     if (window.confirm("Mark this as Resolved? It will be removed from records.")) {
       try {
-        const res = await fetch(`
-          https://hostelflow-production-e1ce.up.railway.app/admin/resolve-complaint/${id}`, {
+        const res = await fetch(`${BASE_URL}/admin/resolve-complaint/${id}`, {
           method: 'DELETE'
         });
         const result = await res.json();
@@ -56,7 +55,7 @@ const AdminComplaints = () => {
       {/* Main Content Section */}
       <div style={{ marginLeft: '250px', padding: '30px', width: '100%', minHeight: '100vh', background: '#f8f9fa' }}>
         <h2 className="mb-4 fw-bold">Student Complaints</h2>
-        
+
         <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
           <div className="card-body p-0">
             <table className="table table-hover mb-0">
@@ -93,8 +92,8 @@ const AdminComplaints = () => {
                         </span>
                       </td>
                       <td className="text-center">
-                        <button 
-                          className="btn btn-outline-success btn-sm rounded-pill px-3" 
+                        <button
+                          className="btn btn-outline-success btn-sm rounded-pill px-3"
                           onClick={() => resolveComplaint(c.complaint_id)}
                         >
                           <i className="bi bi-check2-circle me-1"></i> Resolve
