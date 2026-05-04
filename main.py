@@ -170,7 +170,7 @@ async def payment_success(fee_id: int):
         today = datetime.date.today()
         cursor.execute("UPDATE fees SET status = 'Paid', payment_date = %s WHERE fee_id = %s", (today, fee_id))
         db.commit()
-        return RedirectResponse(url=f"/student/fees/{fee_id}")
+        return RedirectResponse(url=f"https://fyp-phi-blue.vercel.app/student/fees")
         
     except Exception as e:
         print(f"Database update error: {e}")
@@ -444,7 +444,7 @@ async def get_student_fees(student_id: int):
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
     try:
-        cursor.execute("SELECT * FROM fees WHERE fee_id = %s ORDER BY fee_id DESC", (student_id,))
+        cursor.execute("SELECT * FROM fees WHERE student_id = %s ORDER BY fee_id DESC", (student_id,))
         return cursor.fetchall()
     finally:
         db.close()
