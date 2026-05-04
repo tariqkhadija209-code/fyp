@@ -148,8 +148,8 @@ async def create_checkout_session(data: CheckoutRequest):
                 'quantity': 1,
             }],
             mode='payment',
-            success_url=f"https://hostelflow-production-e1ce.up.railway.app/payment-success?fee_id={fee_id}",
-            cancel_url="https://hostelflow-production-e1ce.up.railway.app/payment-cancelled",
+            success_url=f"https://fyp-phi-blue.vercel.app/payment-success?fee_id={fee_id}",
+            cancel_url="https://fyp-phi-blue.vercel.app/payment-cancelled",
         )
 
         return {"url": session.url}

@@ -51,7 +51,7 @@ const StudentFees = () => {
       };
       
 
-      const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/student/create-checkout-session', {
+      const res = await fetch('http://localhost:8000/student/create-checkout-session', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json' // Backend ko batayein ke ye JSON hai
@@ -60,6 +60,7 @@ const StudentFees = () => {
       });
 
       const data = await res.json();
+      console.log("Payment Session Response:", data); // Debugging ke liye console log
 
       if (data.url) {
         // 2. Agar backend se URL mil gaya hai toh redirect karein
