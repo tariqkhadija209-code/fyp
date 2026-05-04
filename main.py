@@ -231,8 +231,8 @@ async def create_checkout_session(data: CheckoutRequest):
                 'quantity': 1,
             }],
             mode='payment',
-            success_url=f"http://187.77.9.39:8000/payment-success?fee_id={fee_id}",
-            cancel_url="http://187.77.9.39:8000/payment-cancelled",
+            success_url=f"https://187.77.9.39/payment-success?fee_id={fee_id}",
+            cancel_url="https://187.77.9.39/payment-cancelled",
         )
 
         return {"url": session.url}
