@@ -1,1 +1,1 @@
-export const BASE_URL = 'https://fyp-production-ed9b.up.railway.app';
+export const BASE_URL = 'http://187.77.9.39:8000';
