@@ -231,8 +231,8 @@ async def create_checkout_session(data: CheckoutRequest):
                 'quantity': 1,
             }],
             mode='payment',
-            success_url=f"https://187.77.9.39/payment-success?fee_id={fee_id}",
-            cancel_url="https://187.77.9.39/payment-cancelled",
+            success_url=f"https://talkify.app/payment-success?fee_id={fee_id}",
+            cancel_url="https://talkify.app/payment-cancelled",
         )
 
         return {"url": session.url}

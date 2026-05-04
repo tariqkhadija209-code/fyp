@@ -1,1 +1,1 @@
-export const BASE_URL = 'https://187.77.9.39';
+export const BASE_URL = 'https://talkify.app';
