@@ -16,9 +16,10 @@ const Chatbot = ({ studentId }) => {
       const res = await fetch(`${BASE_URL}/chatbot`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({
-    message: input
-  })
+        body: JSON.stringify({
+          message: input,
+          studentId: studentId
+        })
       });
       const data = await res.json();
       setMessages([...newMsgs, { text: data.reply, isBot: true }]);

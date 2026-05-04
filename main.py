@@ -14,10 +14,12 @@ from fastapi.security import OAuth2PasswordBearer
 from typing import Optional, List
 
 import google.generativeai as genai
+from google.genai import types
 
 
 
 import google.generativeai as genai
+from google.genai import types
 
 # .env file se variables load karne ke liye
 load_dotenv()
@@ -769,34 +771,115 @@ async def generate_reply(prompt):
     return None
 
 
+# --- CHATBOT DATABASE TOOLS ---
+def db_get_student_info(student_id: int):
+    
+    """Fetches general profile information for a student including name, roll number, and department."""
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT full_name, roll_no, department, gender FROM students WHERE student_id = %s", (student_id,))
+        return cursor.fetchone()
+    finally:
+        db.close()
+
+def db_get_room_details(student_id: int):
+    """Fetches room allocation details for a specific student."""
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+    try:
+        query = """
+            SELECT hr.room_no, hr.block, hr.wing 
+            FROM allocations a 
+            JOIN hostel_rooms hr ON a.room_id = hr.room_id 
+            WHERE a.student_id = %s
+        """
+        cursor.execute(query, (student_id,))
+        return cursor.fetchone()
+    finally:
+        db.close()
+
+def db_get_fee_status(student_id: int):
+    """Fetches fee records and payment status for a specific student."""
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT amount, billing_month, status, payment_date FROM fees WHERE student_id = %s ORDER BY fee_id DESC", (student_id,))
+        return cursor.fetchall()
+    finally:
+        db.close()
+
+def db_get_mess_menu(day: str):
+    """Fetches the mess menu for a specific day of the week (e.g., Monday, Tuesday)."""
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT meal_type, dish_name FROM mess_menu WHERE day_of_week = %s", (day,))
+        return cursor.fetchall()
+    finally:
+        db.close()
+
+def db_get_latest_notifications():
+    """Fetches the latest notifications and announcements for students."""
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT title, message, created_at FROM notifications ORDER BY created_at DESC LIMIT 5")
+        return cursor.fetchall()
+    finally:
+        db.close()
+
+# List of tools for Gemini
+hostel_tools = [
+    db_get_student_info,
+    db_get_room_details,
+    db_get_fee_status,
+    db_get_mess_menu,
+    db_get_latest_notifications
+]
+
+
 @app.post("/chatbot")
 async def hostel_bot(request: Request):
     try:
         data = await request.json()
-        print(data)
         user_msg = data.get("message", "").strip()
+        student_id = data.get("studentId")
 
         if not user_msg:
             return {"reply": "Please send a message."}
 
-        print(f"User Message: {user_msg}")
+        print(f"User Message: {user_msg}, Student ID: {student_id}")
 
-        prompt = (
-            "Context: You are the HostelFlow AI Assistant.\n"
-            "Instructions: Answer concisely and politely.\n"
-            "IMPORTANT: Respond in the SAME language the user used.\n"
-            f"User Question: {user_msg}"
+        # Construct System Instructions with User Context
+        system_instruction = (
+            "You are the HostelFlow AI Assistant. You help students with their hostel-related queries.\n"
+            "You have access to tools that can query the database for real-time information.\n"
+            "INSTRUCTIONS:\n"
+            "1. Answer concisely and politely.\n"
+            "2. Respond in the SAME language the user used.\n"
+            f"3. CURRENT USER CONTEXT: The student currently asking has student_id = {student_id}.\n"
+            "   - If the user asks about 'my room', 'my fees', or 'my profile', use this ID.\n"
+            "   - If student_id is null/missing, tell them to log in to see personal details.\n"
+            "4. For mess menu, ask for the day if not provided.\n"
+            "5. Always prioritize using the provided tools to get accurate data."
+        )
+        models = ["gemini-2.5-flash", "gemini-2.0-flash"]
+        # Use the official SDK with automatic function calling
+        response = client.models.generate_content(
+            model=models[0],
+            contents=user_msg,
+            config=types.GenerateContentConfig(
+                system_instruction=system_instruction,
+                tools=hostel_tools,
+                automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=False)
+            )
         )
 
-        reply = await generate_reply(prompt)
-
-        if not reply:
-            reply = "AI is currently busy. Please try again in a few seconds."
-
+        reply = response.text if response.text else "I'm sorry, I couldn't process that request."
+        
         return {"reply": reply}
 
     except Exception as e:
         print(f"Backend Error: {e}")
-        return {
-            "reply": "Sorry, I am having a connection issue with my AI brain."
-        }
+        return {"reply": "An error occurred while processing your request. Please try again later."}
