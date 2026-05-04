@@ -148,8 +148,8 @@ async def create_checkout_session(data: CheckoutRequest):
                 'quantity': 1,
             }],
             mode='payment',
-            success_url=f"https://fyp-phi-blue.vercel.app/payment-success?fee_id={fee_id}",
-            cancel_url="https://fyp-phi-blue.vercel.app/payment-cancelled",
+            success_url=f"http://localhost:8000/payment-success?fee_id={fee_id}",
+            cancel_url="http://localhost:8000/payment-cancelled",
         )
 
         return {"url": session.url}
@@ -170,7 +170,7 @@ async def payment_success(fee_id: int):
         today = datetime.date.today()
         cursor.execute("UPDATE fees SET status = 'Paid', payment_date = %s WHERE fee_id = %s", (today, fee_id))
         db.commit()
-        return RedirectResponse(url=f"https://hostelflow-production-e1ce.up.railway.app/student/fees?payment=success&fee_id={fee_id}")
+        return RedirectResponse(url=f"/student/fees/{fee_id}")
         
     except Exception as e:
         print(f"Database update error: {e}")
@@ -444,7 +444,7 @@ async def get_student_fees(student_id: int):
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
     try:
-        cursor.execute("SELECT * FROM fees WHERE student_id = %s ORDER BY fee_id DESC", (student_id,))
+        cursor.execute("SELECT * FROM fees WHERE fee_id = %s ORDER BY fee_id DESC", (student_id,))
         return cursor.fetchall()
     finally:
         db.close()

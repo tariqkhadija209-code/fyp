@@ -33,7 +33,7 @@ const StudentFees = () => {
     if (window.location.search.includes('payment=success')) {
       alert("Transaction Successful: Your records are updated.");
       // URL saaf karne ke liye taake alert baar baar na aaye
-      window.history.replaceState({}, document.title, window.location.pathname);
+      // window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, [navigate]);
 
