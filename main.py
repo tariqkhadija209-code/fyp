@@ -746,7 +746,7 @@ api_key = os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=api_key)
 
 # Model configuration
-gemini_model = genai.GenerativeModel('gemini-2.5-flash-pro')
+gemini_model = genai.GenerativeModel('veo-2.0-generate-001')
 
 @app.post("/chatbot")
 async def hostel_bot(request: Request):

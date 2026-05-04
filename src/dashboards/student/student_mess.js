@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
+import { BASE_URL } from '../../components/constant';
 const StudentMess = () => {
   const [menu, setMenu] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +17,7 @@ const StudentMess = () => {
     // 2. Fetch Mess Menu from Warden API
     const fetchMenu = async () => {
       try {
-        const res = await fetch('/warden/menu');
+        const res = await fetch(`${BASE_URL}/warden/menu`);
         const data = await res.json();
         setMenu(data);
       } catch (err) {
