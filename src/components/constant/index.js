@@ -1,1 +1,1 @@
-export const BASE_URL = 'https://fyp-production-ed9b.up.railway.app';
+export const BASE_URL = 'https://fyp-production-3ea3.up.railway.app';
