@@ -745,7 +745,7 @@ load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=api_key)
 
-# Model configuration
+# Model configuratio
 gemini_model = genai.GenerativeModel('veo-2.0-generate-001')
 
 @app.post("/chatbot")
