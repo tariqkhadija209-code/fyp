@@ -51,7 +51,7 @@ const StudentFees = () => {
       };
       
 
-      const res = await fetch('http://localhost:8000/student/create-checkout-session', {
+      const res = await fetch('https://hostelflow-production-e1ce.up.railway.app/student/create-checkout-session', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json' // Backend ko batayein ke ye JSON hai
