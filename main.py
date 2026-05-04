@@ -703,7 +703,7 @@ async def get_warden_attendance():
     finally:
         db.close()
 
-@app.get("/warden/menu", dependencies=[Depends(RoleChecker(["Warden", "Admin"]))])
+@app.get("/warden/menu")
 async def get_menu():
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
