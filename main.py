@@ -1,7 +1,7 @@
 import os
 import mysql.connector
 from dotenv import load_dotenv
-from fastapi import FastAPI, Form, HTTPException, Depends, Security
+from fastapi import FastAPI,Request, Form, HTTPException, Depends, Security
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 import datetime
@@ -13,6 +13,25 @@ from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from typing import Optional, List
 
+import google.generativeai as genai
+
+
+
+import google.generativeai as genai
+
+# .env file se variables load karne ke liye
+load_dotenv()
+
+# API Key ab environment variable se aaye gi
+api_key = os.getenv("GEMINI_API_KEY")
+genai.configure(api_key=api_key)
+
+# Model configuratio
+gemini_model = genai.GenerativeModel('veo-2.0-generate-001')
+from google import genai
+import os
+
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 # Model load karein
 ml_model = joblib.load('room_allocator.pkl')
 
@@ -731,45 +750,53 @@ async def get_notifs():
     finally:
         db.close()    
 
-import google.generativeai as genai
-from fastapi import FastAPI, Request
+async def generate_reply(prompt):
+    models = ["gemini-2.5-flash", "gemini-2.0-flash"]
+    
+    for model in models:
+        for attempt in range(3):  # retry 3 times
+            try:
+                response = client.models.generate_content(
+                    model=model,
+                    contents=prompt
+                )
+                if response.text:
+                    return response.text
+            except Exception as e:
+                print(f"{model} attempt {attempt+1} failed: {e}")
+                await asyncio.sleep(2)
 
-import os
-from dotenv import load_dotenv
-import google.generativeai as genai
+    return None
 
-# .env file se variables load karne ke liye
-load_dotenv()
-
-# API Key ab environment variable se aaye gi
-api_key = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=api_key)
-
-# Model configuratio
-gemini_model = genai.GenerativeModel('veo-2.0-generate-001')
 
 @app.post("/chatbot")
 async def hostel_bot(request: Request):
     try:
         data = await request.json()
-        user_msg = data.get("message", "")
-        
+        print(data)
+        user_msg = data.get("message", "").strip()
+
+        if not user_msg:
+            return {"reply": "Please send a message."}
+
         print(f"User Message: {user_msg}")
 
         prompt = (
-            f"Context: You are the HostelFlow AI Assistant. "
-            f"Instructions: Answer concisely and politely. "
-            f"IMPORTANT: Respond in the SAME language the user used. "
+            "Context: You are the HostelFlow AI Assistant.\n"
+            "Instructions: Answer concisely and politely.\n"
+            "IMPORTANT: Respond in the SAME language the user used.\n"
             f"User Question: {user_msg}"
         )
-        
-        response = gemini_model.generate_content(prompt)
-        
-        if response.text:
-            return {"reply": response.text}
-        else:
-            return {"reply": "I received your message but couldn't generate a specific answer. Please try again."}
-            
+
+        reply = await generate_reply(prompt)
+
+        if not reply:
+            reply = "AI is currently busy. Please try again in a few seconds."
+
+        return {"reply": reply}
+
     except Exception as e:
         print(f"Backend Error: {e}")
-        return {"reply": "Sorry, I am having a connection issue with my AI brain. Please check your internet or API key."}
+        return {
+            "reply": "Sorry, I am having a connection issue with my AI brain."
+        }

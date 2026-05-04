@@ -6,6 +6,7 @@ stripe
 joblib
 scikit-learn
 google-generativeai
+google-genai
 python-multipart
 python-multipart
 python-jose[cryptography]
