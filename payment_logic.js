@@ -10,7 +10,6 @@ const form = document.getElementById('payment-form');
 form.addEventListener('submit', async (event) => {
     event.preventDefault();
 
-    // 1. Backend se "Payment Intent" mangwana
     const response = await fetch(`${BASE_URL}/create-payment-intent`, { method: 'POST' });
     const { clientSecret } = await response.json();
 

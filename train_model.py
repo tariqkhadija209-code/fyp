@@ -35,13 +35,11 @@ data = {
 df = pd.DataFrame(data)
 
 # 2. Better Vectorization
-# min_df=1 matlab agar koi word ek baar bhi aye to ignore na ho
+
 vectorizer = TfidfVectorizer(ngram_range=(1, 2), stop_words='english', min_df=1)
 X = vectorizer.fit_transform(df['description'])
 y = df['priority']
 
-# 3. Model with Class Balancing
-# class_weight='balanced' AI ko batata hai ke jo category kam hai usay zyada tawajjo do
 model = RandomForestClassifier(n_estimators=300, class_weight='balanced', random_state=42)
 model.fit(X, y)
 

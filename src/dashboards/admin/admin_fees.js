@@ -28,14 +28,14 @@ const AdminFees = () => {
     }
 
     try {
-      // FastAPI Form(...) expect karta hai, isliye FormData use kar rahe hain
+      // FastAPI Form(...) 
       const formData = new FormData();
       formData.append('billing_month', genData.month); // Backend field name match kar diya
       formData.append('amount', genData.amount);
 
       const res = await fetch(`${BASE_URL}/admin/generate-fees`, {
         method: 'POST',
-        // Note: Headers mein Content-Type nahi lagana, browser khud boundary set karega
+        
         body: formData
       });
 
@@ -54,14 +54,14 @@ const AdminFees = () => {
     }
   };
 
-  // 3. Approve / Mark as Paid
+ 
   const approveFee = async (id) => {
     try {
       const res = await fetch(`${BASE_URL}/admin/approve-fee/${id}`, {
         method: 'PUT'
       });
       if (res.ok) {
-        loadFees(); // Table update karein
+        loadFees(); // Refresh the fee list after approval
       }
     } catch (err) {
       console.error("Approval failed", err);

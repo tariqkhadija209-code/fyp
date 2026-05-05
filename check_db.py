@@ -25,7 +25,7 @@ MODIFY status VARCHAR(50);
 # Save changes
 connection.commit()
 
-print("✅ Table 'attendance' created successfully (or already exists).")
+print(" Table 'attendance' created successfully (or already exists).")
 
 # Optional: Show tables in DB
 cursor.execute("SHOW TABLES")

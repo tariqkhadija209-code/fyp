@@ -6,10 +6,10 @@ const AdminRooms = () => {
   const [pendingStudents, setPendingStudents] = useState([]);
   const [newRoom, setNewRoom] = useState({ room_no: '', capacity: 3, block: 'A' });
 
-  // 1. Data Load karne ka Function
+
   const fetchData = async () => {
     try {
-      // Dono APIs ko ek sath call karein
+   
       const [roomRes, studentRes] = await Promise.all([
         fetch(`${BASE_URL}/admin/rooms`),
         fetch(`${BASE_URL}/admin/pending-students`)
@@ -29,7 +29,6 @@ const AdminRooms = () => {
     fetchData();
   }, []);
 
-  // 2. Naya Room Add karne ka Function
 const handleAddRoom = async (e) => {
   e.preventDefault();
 
@@ -42,7 +41,7 @@ const handleAddRoom = async (e) => {
   try {
     const res = await fetch(`${BASE_URL}/admin/add-room`, {
       method: 'POST',
-      body: formData   // ✅ no headers
+      body: formData   
     });
 
     const data = await res.json();
@@ -67,7 +66,7 @@ const handleAddRoom = async (e) => {
       });
       const data = await res.json();
       alert(data.message);
-      fetchData(); // Dono tables refresh ho jayengi
+      fetchData(); 
     } catch (err) {
       alert("Server error or AI service down!");
     }

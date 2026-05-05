@@ -42,11 +42,11 @@ const StudentAttendance = () => {
       const result = await response.json();
 
       if (response.ok && result.status === "success") {
-        alert("✅ Attendance Marked Successfully!");
+        alert("Attendance Marked Successfully!");
         setIsMarked(true);
         setStatusMsg("Success! Your presence is recorded.");
       } else {
-        setStatusMsg(`❌ ${result.message || "Failed to mark."}`);
+        setStatusMsg(` ${result.message || "Failed to mark."}`);
       }
     } catch (error) {
       console.error("Fetch Error:", error);

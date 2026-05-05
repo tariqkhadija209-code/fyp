@@ -12,7 +12,7 @@ const Footer = () => {
             <h3 className="text-white fw-bold mb-4">Hostel<span className="text-primary">Flow</span></h3>
             <p style={{ lineHeight: '1.8' }}>
               HostelFlow is a digital platform designed to simplify student life. 
-              Humne manual registers ko khatam karke automate dashboards banaye hain.
+              From secure access to instant communication, we provide a seamless hostel experience.
             </p>
             <div className="d-flex gap-3 fs-4 mt-4">
               <a href="#" className="text-white hover-blue transition"><i className="fab fa-facebook"></i></a>

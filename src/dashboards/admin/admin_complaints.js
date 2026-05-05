@@ -4,7 +4,7 @@ import { BASE_URL } from '../../components/constant';
 const AdminComplaints = () => {
   const [complaints, setComplaints] = useState([]);
 
-  // Complaints load karne ka function
+ 
   const loadComplaints = async () => {
     try {
       const res = await fetch(`${BASE_URL}/admin/complaints`);
@@ -19,7 +19,7 @@ const AdminComplaints = () => {
     loadComplaints();
   }, []);
 
-  // Complaint resolve (delete) karne ka function
+  
   const resolveComplaint = async (id) => {
     if (window.confirm("Mark this as Resolved? It will be removed from records.")) {
       try {

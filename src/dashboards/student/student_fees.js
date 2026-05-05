@@ -66,13 +66,13 @@ const StudentFees = () => {
       });
 
       const data = await res.json();
-      console.log("Payment Session Response:", data); // Debugging ke liye console log
+      console.log("Payment Session Response:", data); 
 
       if (data.url) {
-        // 2. Agar backend se URL mil gaya hai toh redirect karein
+        
         window.location.href = data.url;
       } else {
-        // Agar response mein URL nahi hai toh console mein check karein kya aaya
+        
         console.error("Backend Error Response:", data);
         alert("Gateway Error: " + (data || "Unable to initialize payment."));
       }

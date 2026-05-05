@@ -9,7 +9,7 @@ const WardenMess = () => {
   const [showSidebar, setShowSidebar] = useState(false);
   const navigate = useNavigate();
 
-  // 1. Menu Load Karein
+ 
   const loadMenu = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -29,7 +29,7 @@ const WardenMess = () => {
     loadMenu();
   }, [navigate]);
 
-  // 2. Form Submit (Update Menu)
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -49,8 +49,8 @@ const WardenMess = () => {
 
       if (res.ok) {
         alert("Menu Updated Successfully!");
-        setFormData({ ...formData, dish: '' }); // Sirf dish field clear karein
-        loadMenu(); // Table ko refresh karein baghair page reload kiye
+        setFormData({ ...formData, dish: '' }); 
+        loadMenu(); 
       }
     } catch (err) {
       alert("Error updating menu!");

@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 config = {
-    # Humne hostname ki jagah direct IP (64.227.140.137) use kiya hai
     'host': '64.227.140.137', 
     'user': 'avnadmin',
     'password': os.getenv("DB_PASSWORD"),
@@ -21,7 +20,6 @@ def upload_data():
         conn = mysql.connector.connect(**config)
         cursor = conn.cursor()
         
-        # Primary key ka masla hal karne ke liye
         cursor.execute("SET SESSION sql_require_primary_key = 0;")
         
         with open('hostelflow.sql', 'r', encoding='utf-8') as f:
@@ -37,7 +35,7 @@ def upload_data():
             try:
                 cursor.execute(clean_cmd)
             except Exception as e:
-                # Agar table pehle se bana ho to error skip karega
+                
                 continue
 
         conn.commit()
@@ -46,11 +44,11 @@ def upload_data():
         tables = cursor.fetchall()
         
         if tables:
-            print("Mubarak ho Khadija! Ye tables ab Aiven par hain:")
+            print("connection successful and tables uploaded:")
             for t in tables:
                 print(f"-> {t[0]}")
         else:
-            print("Connection to ho gaya lekin tables nahi banay.")
+            print("No tables found.")
 
         conn.close()
     except Exception as err:

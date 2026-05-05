@@ -43,9 +43,9 @@ const StudentComplaints = () => {
 
       if (data.status === "success") {
         alert(`Success! AI detected this as ${data.detected_priority || 'Medium'} priority.`);
-        // Form clear karne ke liye
+        
         setComplaintData({ type: '', desc: '' });
-        // Page refresh ki jagah aap list update kar sakti hain, filhal reset karte hain
+        
       } else {
         alert("Oopsy! " + (data.message || "Something went wrong"));
       }
