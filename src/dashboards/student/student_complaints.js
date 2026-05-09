@@ -1,59 +1,49 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BASE_URL } from '../../components/constant';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectCurrentUser, logout } from '../../store/slices/authSlice';
+import { useAddComplaintMutation } from '../../store/api/studentApi';
+
 const StudentComplaints = () => {
+  const user = useSelector(selectCurrentUser);
+  const dispatch = useDispatch();
   const [complaintData, setComplaintData] = useState({ type: '', desc: '' });
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // 1. Submit Function
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
+
+  const [addComplaint, { isLoading: loading }] = useAddComplaintMutation();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const userStr = localStorage.getItem('user');
-    if (!userStr) {
+    if (!user) {
       alert("Session expired. Please login again.");
       navigate('/login');
       return;
     }
 
-    const user = JSON.parse(userStr);
     const finalStudentId = user.student_id || user.id;
 
-    if (!finalStudentId) {
-      alert("Error: Student ID not found.Please login again.");
-      return;
-    }
-
-    setLoading(true);
-
-    // Form Data prepare karein (Backend expectations ke mutabiq)
-    const formData = new FormData();
-    formData.append("type", complaintData.type);
-    formData.append("desc", complaintData.desc);
-    formData.append("student_id", finalStudentId);
-
     try {
-      const res = await fetch(`${BASE_URL}/student/add-complaint`, {
-        method: 'POST',
-        body: formData
-      });
+      const result = await addComplaint({
+        type: complaintData.type,
+        desc: complaintData.desc,
+        student_id: finalStudentId
+      }).unwrap();
 
-      const data = await res.json();
-
-      if (data.status === "success") {
-        alert(`Success! AI detected this as ${data.detected_priority || 'Medium'} priority.`);
-        
+      if (result.status === "success") {
+        alert(`Success! AI detected this as ${result.detected_priority || 'Medium'} priority.`);
         setComplaintData({ type: '', desc: '' });
-        
       } else {
-        alert("Oopsy! " + (data.message || "Something went wrong"));
+        alert("Oopsy! " + (result.message || "Something went wrong"));
       }
     } catch (err) {
-      console.error(err);
+      console.error("Add complaint error:", err);
       alert("Failed to connect to backend. Server on hai?");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -67,7 +57,9 @@ const StudentComplaints = () => {
         <Link to="/student/mess" style={linkStyle}>Mess Menu</Link>
         <Link to="/student/fees" style={linkStyle}>Fee Status</Link>
         <Link to="/student/complaints" style={{ ...linkStyle, background: '#0d6efd', color: 'white' }}>My Complaints</Link>
-        <Link to="/login" className="text-danger mt-5" style={linkStyle}>Logout</Link>
+        <button onClick={handleLogout} className="btn text-danger mt-5 w-100 text-start ps-4 border-0 shadow-none" style={linkStyle}>
+          Logout
+        </button>
       </div>
 
       {/* Main Content */}

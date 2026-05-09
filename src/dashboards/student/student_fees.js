@@ -1,83 +1,55 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BASE_URL } from '../../components/constant';
+
+import { useSelector, useDispatch } from 'react-redux';
+import { selectCurrentUser, logout } from '../../store/slices/authSlice';
+import { useGetStudentFeesQuery, useCreateCheckoutSessionMutation } from '../../store/api/studentApi';
+import Loader from '../../components/Loader';
 
 const StudentFees = () => {
-  const [fees, setFees] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const user = useSelector(selectCurrentUser);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // 1. Fee load karne ka effect
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
+
+  // RTK Query for fetching fees
+  const { data: fees = [], isLoading: loading } = useGetStudentFeesQuery(user?.student_id, {
+    skip: !user?.student_id,
+  });
+
+  // RTK Query for creating payment session
+  const [createCheckoutSession] = useCreateCheckoutSessionMutation();
+
   useEffect(() => {
-    const userStr = localStorage.getItem('user');
-    if (!userStr) {
+    if (!user) {
       navigate('/login');
-      return;
     }
-    const user = JSON.parse(userStr);
 
-    const fetchFees = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await fetch(`${BASE_URL}/student/fees/${user.student_id}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await res.json();
-        setFees(data);
-      } catch (err) {
-        console.error("Fee loading error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFees();
-
-    // Payment Success Alert (URL check)
     if (window.location.search.includes('payment=success')) {
       alert("Transaction Successful: Your records are updated.");
-      // URL saaf karne ke liye taake alert baar baar na aaye
-      // window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, [navigate]);
+  }, [user, navigate]);
 
-  // 2. Stripe Checkout Function
+  if (loading) return <Loader />;
+
   const handlePayment = async (feeId, amount) => {
     if (!feeId || !amount) {
       alert("Payment Error: Missing fee details.");
       return;
     }
     try {
-      // 1. FormData ki jagah simple JSON object banayein
-      const paymentData = {
-        fee_id: feeId,
-        amount: amount
-      };
-
-
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${BASE_URL}/student/create-checkout-session`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(paymentData)
-      });
-
-      const data = await res.json();
-      console.log("Payment Session Response:", data); 
-
-      if (data.url) {
-        
-        window.location.href = data.url;
+      const result = await createCheckoutSession({ fee_id: feeId, amount }).unwrap();
+      if (result.url) {
+        window.location.href = result.url;
       } else {
-        
-        console.error("Backend Error Response:", data);
-        alert("Gateway Error: " + (data || "Unable to initialize payment."));
+        alert("Gateway Error: Unable to initialize payment.");
       }
     } catch (err) {
-      console.error("Fetch Error:", err);
+      console.error("Payment Error:", err);
       alert("Connection Error: Could not reach the payment server.");
     }
   };
@@ -92,10 +64,9 @@ const StudentFees = () => {
         <Link to="/student/mess" style={linkStyle}>Mess Menu</Link>
         <Link to="/student/fees" style={{ ...linkStyle, background: '#3498db', color: 'white' }}>Fee Status</Link>
         <Link to="/student/complaints" style={linkStyle}>My Complaints</Link>
-        <Link to="/login" className="text-danger mt-5" style={linkStyle} onClick={() => {
-          localStorage.removeItem('user');
-          localStorage.removeItem('token');
-        }}>Logout</Link>
+        <button onClick={handleLogout} className="btn text-danger mt-5 w-100 text-start ps-4 border-0 shadow-none" style={linkStyle}>
+          Logout
+        </button>
       </div>
 
       {/* Main Content */}

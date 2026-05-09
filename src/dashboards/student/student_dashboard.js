@@ -1,63 +1,40 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BASE_URL } from '../../components/constant';
+
+import { useSelector, useDispatch } from 'react-redux';
+import { selectCurrentUser, logout } from '../../store/slices/authSlice';
+import { useGetRoomDetailsQuery, useGetNotificationsQuery } from '../../store/api/studentApi';
+import Loader from '../../components/Loader';
 
 const StudentDashboard = () => {
-  const [user, setUser] = useState(null);
-  const [roomDetails, setRoomDetails] = useState({ no: 'Checking...', block: '---', wing: 'Loading...' });
-  const [notifications, setNotifications] = useState([]);
+  const user = useSelector(selectCurrentUser);
+  const dispatch = useDispatch();
   const [showSidebar, setShowSidebar] = useState(false);
   const navigate = useNavigate();
 
+  // Redirect if not logged in
   useEffect(() => {
-    // 1. Session Check
-    const storedUser = JSON.parse(localStorage.getItem('user'));
-    if (!storedUser) {
+    if (!user) {
       navigate('/login');
-      return;
     }
-    setUser(storedUser);
+  }, [user, navigate]);
 
-    // 2. Load Data
-    const loadDashboardData = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        // Fetch Room Details
-        const roomRes = await fetch(`${BASE_URL}/student/room-details/${storedUser.student_id}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const roomData = await roomRes.json();
+  // RTK Query hooks for data fetching
+  const { data: roomData, isLoading: isRoomLoading } = useGetRoomDetailsQuery(user?.student_id, {
+    skip: !user?.student_id,
+  });
+  const { data: notificationsData, isLoading: isNotifLoading } = useGetNotificationsQuery();
 
-        if (roomData.status === "success") {
-          setRoomDetails({
-            no: roomData.room_no,
-            block: roomData.block,
-            wing: roomData.wing || "General"
-          });
-        } else {
-          setRoomDetails({ no: "Pending Allocation", block: "---", wing: "---" });
-        }
+  if (isRoomLoading || isNotifLoading) return <Loader />;
 
-        // Fetch Notifications (Synchronization point)
-        const notifRes = await fetch(`${BASE_URL}/student/notifications`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const notifData = await notifRes.json();
+  const roomDetails = roomData?.status === "success" 
+    ? { no: roomData.room_no, block: roomData.block, wing: roomData.wing || "General" }
+    : { no: "Pending Allocation", block: "---", wing: "---" };
 
-        // Ensure notifData is an array before setting state
-        setNotifications(Array.isArray(notifData) ? notifData : []);
-
-      } catch (err) {
-        console.error("Dashboard data fetch error:", err);
-      }
-    };
-
-    loadDashboardData();
-  }, [navigate]);
+  const notifications = Array.isArray(notificationsData) ? notificationsData : [];
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
+    dispatch(logout());
     navigate('/login');
   };
 
@@ -91,6 +68,14 @@ const StudentDashboard = () => {
           <h2 className="fw-bold">Welcome, {user ? user.username : 'Student'}!</h2>
           <p className="mb-0">Always stay updated with hostel announcements.</p>
         </div>
+
+        {/* Room Pending Alert */}
+        {roomData?.status !== "success" && (
+          <div className="alert alert-warning border-0 shadow-sm rounded-4 mb-4" role="alert">
+            <i className="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Room Status:</strong> Admin has not allocated your room yet. Please check back later.
+          </div>
+        )}
 
         <div className="row">
           {/* Notifications Section - Left Side */}

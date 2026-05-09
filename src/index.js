@@ -10,9 +10,14 @@ import './App.css';
 // Note: Agar aapne public/index.html mein CDN link dala hai toh ye line skip kar sakti hain
 // Lekin humne yahan ensure kiya hai ke bootstrap ke sath styling default set ho.
 
+import { Provider } from 'react-redux';
+import { store } from './store/store';
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <Provider store={store}>
+      <App />
+    </Provider>
   </React.StrictMode>
 );

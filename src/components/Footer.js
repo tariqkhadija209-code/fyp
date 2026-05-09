@@ -15,10 +15,10 @@ const Footer = () => {
               From secure access to instant communication, we provide a seamless hostel experience.
             </p>
             <div className="d-flex gap-3 fs-4 mt-4">
-              <a href="#" className="text-white hover-blue transition"><i className="fab fa-facebook"></i></a>
-              <a href="#" className="text-white hover-blue transition"><i className="fab fa-instagram"></i></a>
-              <a href="#" className="text-white hover-blue transition"><i className="fab fa-twitter"></i></a>
-              <a href="#" className="text-white hover-blue transition"><i className="fab fa-linkedin"></i></a>
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-white hover-blue transition"><i className="fab fa-facebook"></i></a>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-white hover-blue transition"><i className="fab fa-instagram"></i></a>
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-white hover-blue transition"><i className="fab fa-twitter"></i></a>
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-white hover-blue transition"><i className="fab fa-linkedin"></i></a>
             </div>
           </div>
 

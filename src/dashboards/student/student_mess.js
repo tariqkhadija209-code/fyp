@@ -1,34 +1,30 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BASE_URL } from '../../components/constant';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectCurrentUser, logout } from '../../store/slices/authSlice';
+import { useGetMenuQuery } from '../../store/api/wardenApi';
+import Loader from '../../components/Loader';
+
 const StudentMess = () => {
-  const [menu, setMenu] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const user = useSelector(selectCurrentUser);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // RTK Query for fetching menu (sharing wardenApi endpoint)
+  const { data: menu = [], isLoading: loading } = useGetMenuQuery();
+
   useEffect(() => {
-    // 1. Session Check
-    const userStr = localStorage.getItem('user');
-    if (!userStr) {
+    if (!user) {
       navigate('/login');
-      return;
     }
+  }, [user, navigate]);
 
-    // 2. Fetch Mess Menu from Warden API
-    const fetchMenu = async () => {
-      try {
-        const res = await fetch(`${BASE_URL}/warden/menu`);
-        const data = await res.json();
-        setMenu(data);
-      } catch (err) {
-        console.error("Mess Menu Error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  if (loading) return <Loader />;
 
-    fetchMenu();
-  }, [navigate]);
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
 
   return (
     <div className="d-flex">
@@ -40,7 +36,9 @@ const StudentMess = () => {
         <Link to="/student/mess" style={{ ...linkStyle, background: '#0d6efd', color: 'white' }}>Mess Menu</Link>
         <Link to="/student/fees" style={linkStyle}>Fee Status</Link>
         <Link to="/student/complaints" style={linkStyle}>My Complaints</Link>
-        <Link to="/login" className="text-danger mt-5" style={linkStyle}>Logout</Link>
+        <button onClick={handleLogout} className="btn text-danger mt-5 w-100 text-start ps-4 border-0 shadow-none" style={linkStyle}>
+          Logout
+        </button>
       </div>
 
       {/* Main Content Section */}

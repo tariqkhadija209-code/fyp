@@ -1,39 +1,29 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { BASE_URL } from '../../components/constant';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { logout } from '../../store/slices/authSlice';
+import { useGetAdminStatsQuery } from '../../store/api/adminApi';
+import Loader from '../../components/Loader';
+
 const AdminDashboard = () => {
   const [showSidebar, setShowSidebar] = useState(false);
-  // State for dynamic stats
-  const [stats, setStats] = useState({
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  
+  // Using RTK Query for automatic data fetching and caching
+  const { data: statsData, isLoading } = useGetAdminStatsQuery();
+
+  if (isLoading) return <Loader />;
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
+
+  const stats = statsData || {
     total_rooms: '--',
     pending_complaints: '--',
     total_revenue: '--'
-  });
-
-  // API Call function (loadStats ka alternative)
-  useEffect(() => {
-    const loadStats = async () => {
-      try {
-        const res = await fetch(`${BASE_URL}/admin/stats`);
-        const data = await res.json();
-        setStats(data);
-      } catch (e) {
-        console.error("Stats load failed");
-      }
-    };
-    loadStats();
-  }, []);
-
-  // AI Allocation logic
-  const triggerAIAllocation = async (id) => {
-    try {
-      const res = await fetch(`${BASE_URL}/admin/allocate-room-ai/${id}`, { method: 'POST' });
-      const data = await res.json();
-      alert(data.message);
-      window.location.reload();
-    } catch (e) {
-      alert("AI Allocation service down.");
-    }
   };
 
   return (
@@ -50,7 +40,9 @@ const AdminDashboard = () => {
         <Link to="/admin/rooms" style={linkStyle}><i className="bi bi-door-open me-2"></i> Room Management</Link>
         <Link to="/admin/fees" style={linkStyle}><i className="bi bi-cash-coin me-2"></i> Fee Verification</Link>
         <Link to="/admin/complaints" style={linkStyle}><i className="bi bi-exclamation-triangle me-2"></i> Complaints View</Link>
-        <Link to="/login" className="text-danger mt-5" style={linkStyle}><i className="bi bi-box-arrow-left me-2"></i> Logout</Link>
+        <button onClick={handleLogout} className="btn text-danger mt-5 w-100 text-start ps-4 border-0 shadow-none" style={linkStyle}>
+          <i className="bi bi-box-arrow-left me-2"></i> Logout
+        </button>
       </div>
 
       {/* 2. Main Content */}

@@ -32,8 +32,16 @@ import AdminComplaints from './dashboards/admin/admin_complaints';
 import AdminFees from './dashboards/admin/admin_fees';
 import AdminRooms from './dashboards/admin/admin_rooms';
 
+import { useSelector } from 'react-redux';
+import { selectIsLoading } from './store/slices/appSlice';
+
 const AppContent = () => {
   const location = useLocation();
+  const isLoading = useSelector(selectIsLoading);
+  
+  React.useEffect(() => {
+    console.log('Redux is integrated. Current isLoading state:', isLoading);
+  }, [isLoading]);
   
   // Local storage se user nikalna
   const storedUser = JSON.parse(localStorage.getItem('user'));

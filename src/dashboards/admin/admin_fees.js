@@ -1,26 +1,27 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { BASE_URL } from '../../components/constant';
-const AdminFees = () => {
-  const [fees, setFees] = useState([]);
-  const [genData, setGenData] = useState({ amount: '', month: '', type: 'Hostel Fee' });
+import { useDispatch } from 'react-redux';
+import { logout } from '../../store/slices/authSlice';
+import { useNavigate, Link } from 'react-router-dom';
+import { useGetFeesSummaryQuery, useGenerateFeesMutation, useApproveFeeMutation } from '../../store/api/adminApi';
+import Loader from '../../components/Loader';
+import { useState } from 'react';
 
-  // 1. Load Fees from Backend
-  const loadFees = async () => {
-    try {
-      const res = await fetch(`${BASE_URL}/admin/fees-summary`);
-      const data = await res.json();
-      setFees(data);
-    } catch (err) {
-      console.error("Critical Error while loading fees:", err);
-    }
+const AdminFees = () => {
+  const [genData, setGenData] = useState({ amount: '', month: '', type: 'Hostel Fee' });
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  // RTK Query hooks
+  const { data: fees = [], isLoading } = useGetFeesSummaryQuery();
+  const [generateFeesMutation] = useGenerateFeesMutation();
+  const [approveFeeMutation] = useApproveFeeMutation();
+
+  if (isLoading) return <Loader />;
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
   };
 
-  useEffect(() => {
-    loadFees();
-  }, []);
-
-  // 2. Generate Fees for All Students (Fixed for FastAPI Form)
   const generateFeesNow = async () => {
     if (!genData.amount || !genData.month) {
       alert("Please fill all fields");
@@ -28,43 +29,29 @@ const AdminFees = () => {
     }
 
     try {
-      // FastAPI Form(...) 
-      const formData = new FormData();
-      formData.append('billing_month', genData.month); // Backend field name match kar diya
-      formData.append('amount', genData.amount);
+      const result = await generateFeesMutation({
+        billing_month: genData.month,
+        amount: genData.amount
+      }).unwrap();
 
-      const res = await fetch(`${BASE_URL}/admin/generate-fees`, {
-        method: 'POST',
-        
-        body: formData
-      });
-
-      const result = await res.json();
-
-      if (res.ok) {
+      if (result.status === "success") {
         alert(result.message || "Fees Generated Successfully");
-        loadFees(); // Table refresh karein
-      } else {
-        alert("Error: " + (result.detail || "Validation Failed"));
-        console.error("Validation Details:", result);
       }
     } catch (err) {
-      alert("Critical Error: Backend server is not responding.");
-      console.error(err);
+      console.error("Generate fees error:", err);
+      alert("Error: " + (err?.data?.detail || "Validation Failed"));
     }
   };
 
- 
   const approveFee = async (id) => {
     try {
-      const res = await fetch(`${BASE_URL}/admin/approve-fee/${id}`, {
-        method: 'PUT'
-      });
-      if (res.ok) {
-        loadFees(); // Refresh the fee list after approval
+      const result = await approveFeeMutation(id).unwrap();
+      if (result.status === "success") {
+        // Automatically refetched due to tags
       }
     } catch (err) {
       console.error("Approval failed", err);
+      alert("Failed to mark fee as paid.");
     }
   };
 
@@ -77,7 +64,9 @@ const AdminFees = () => {
         <Link to="/admin/rooms" style={linkStyle}>Rooms</Link>
         <Link to="/admin/fees" style={{ ...linkStyle, background: '#007bff', color: 'white' }}>Fees</Link>
         <Link to="/admin/complaints" style={linkStyle}>Complaints</Link>
-        <Link to="/login" className="text-danger mt-5" style={linkStyle}>Logout</Link>
+        <button onClick={handleLogout} className="btn text-danger mt-5 w-100 text-start ps-4 border-0 shadow-none" style={linkStyle}>
+          Logout
+        </button>
       </div>
 
       {/* Main Content */}

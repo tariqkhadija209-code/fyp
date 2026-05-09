@@ -1,52 +1,69 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { BASE_URL } from '../components/constant';
+import { useDispatch, useSelector } from 'react-redux';
+import { useLoginMutation } from '../store/api/authApi';
+import { useLazyGetRoomDetailsQuery } from '../store/api/studentApi';
+import { setCredentials, selectIsAuthenticated, selectUserRole } from '../store/slices/authSlice';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const isAuthenticated = useSelector(selectIsAuthenticated);
+    const userRole = useSelector(selectUserRole);
+    const [login] = useLoginMutation();
+    const [getRoomDetails] = useLazyGetRoomDetailsQuery();
 
- const handleLogin = async (e) => {
-  e.preventDefault();
+    useEffect(() => {
+        if (isAuthenticated && userRole) {
+            const role = userRole.toLowerCase();
+            if (role === 'student') navigate('/student/dashboard');
+            else if (role === 'admin') navigate('/admin/dashboard');
+            else if (role === 'warden') navigate('/warden/dashboard');
+        }
+    }, [isAuthenticated, userRole, navigate]);
 
-const credent = { email, password };
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        try {
+            const result = await login({ email, password }).unwrap();
+            console.log("LOGIN RESPONSE:", result);
 
+            if (result.status === 'success') {
+                const role = result.role.toLowerCase();
 
+                // Room allocation check for students
+                if (role === 'student') {
+                    try {
+                        const roomCheck = await getRoomDetails(result.student_id || result.user_id).unwrap();
+                        if (roomCheck.status !== 'success') {
+                            alert("Login Denied: Admin has not allocated your room yet. Please contact the hostel office.");
+                            return;
+                        }
+                    } catch (err) {
+                        console.error("Room check failed:", err);
+                        // If API fails to find room, we assume not allocated
+                        alert("Login Denied: Your room allocation is still pending.");
+                        return;
+                    }
+                }
 
-  try {
-  const response = await fetch(`${BASE_URL}/login`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(credent)   // ✅ correct
-});
+                dispatch(setCredentials(result));
 
-    const result = await response.json();
-    console.log("LOGIN RESPONSE:", result);
-
-    if (response.ok) {
-      localStorage.setItem('user', JSON.stringify(result));
-      localStorage.setItem('token', result.access_token);
-
-      const role = result.role.toLowerCase();
-
-      if (role === 'student') {
-        console.log("Student ID:", result.student_id); // ✅ check this
-        navigate('/student/dashboard');
-      }
-      if (role === 'admin') {
-        console.log("Student ID:", result.student_id); // ✅ check this
-        navigate('/admin/dashboard');
-      }
-      if (role === 'warden') {
-        console.log("Student ID:", result.student_id); // ✅ check this
-        navigate('/warden/dashboard');
-      }
-    }
-  } catch (error) {
-    console.error(error);
-  }
-};
+                if (role === 'student') {
+                    navigate('/student/dashboard');
+                } else if (role === 'admin') {
+                    navigate('/admin/dashboard');
+                } else if (role === 'warden') {
+                    navigate('/warden/dashboard');
+                }
+            }
+        } catch (error) {
+            console.error("Login failed:", error);
+            alert(error?.data?.detail || "Login failed. Please check your credentials.");
+        }
+    };
 
     return (
         <div className="d-flex align-items-center justify-content-center vh-100" style={{ backgroundColor: '#2C3E50' }}>

@@ -1,61 +1,77 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BASE_URL } from '../../components/constant';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectCurrentUser, logout } from '../../store/slices/authSlice';
+import { useGetMenuQuery, useUpdateMessMutation } from '../../store/api/wardenApi';
+import Loader from '../../components/Loader';
 
 const WardenMess = () => {
-  const [menu, setMenu] = useState([]);
+  const user = useSelector(selectCurrentUser);
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState({ day: 'Monday', type: 'Breakfast', dish: '' });
-  const [loading, setLoading] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const navigate = useNavigate();
 
- 
-  const loadMenu = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${BASE_URL}/warden/menu`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      setMenu(data);
-    } catch (err) {
-      console.error("Menu load error:", err);
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
+
+  // RTK Query for fetching and updating menu
+  const { data: menu = [], isLoading: menuLoading } = useGetMenuQuery();
+  const [updateMess, { isLoading: loading }] = useUpdateMessMutation();
+
+  const [sortConfig, setSortConfig] = useState({ key: 'day_of_week', direction: 'asc' });
+
+  const dayOrder = {
+    'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4,
+    'Friday': 5, 'Saturday': 6, 'Sunday': 7
+  };
+
+  const sortedMenu = [...menu].sort((a, b) => {
+    let aVal = a[sortConfig.key];
+    let bVal = b[sortConfig.key];
+
+    if (sortConfig.key === 'day_of_week') {
+      aVal = dayOrder[aVal] || 99;
+      bVal = dayOrder[bVal] || 99;
     }
+
+    if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const requestSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
   };
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user'));
     if (!user) navigate('/login');
-    loadMenu();
-  }, [navigate]);
+  }, [user, navigate]);
 
-  
+  if (menuLoading) return <Loader />;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
-    const bodyData = new FormData();
-    bodyData.append("day", formData.day);
-    bodyData.append("type", formData.type);
-    bodyData.append("dish", formData.dish);
-
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${BASE_URL}/warden/update-mess`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: bodyData
-      });
+      const result = await updateMess({
+        day: formData.day,
+        type: formData.type,
+        dish: formData.dish
+      }).unwrap();
 
-      if (res.ok) {
+      if (result.status === "success") {
         alert("Menu Updated Successfully!");
-        setFormData({ ...formData, dish: '' }); 
-        loadMenu(); 
+        setFormData({ ...formData, dish: '' });
       }
     } catch (err) {
+      console.error("Update mess error:", err);
       alert("Error updating menu!");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -72,12 +88,9 @@ const WardenMess = () => {
         <Link to="/warden/dashboard" style={linkStyle}>Overview</Link>
         <Link to="/warden/attendance" style={linkStyle}>View Attendance</Link>
         <Link to="/warden/mess" style={{ ...linkStyle, background: '#f39c12', color: 'white' }}>Manage Mess</Link>
-        <Link to="/login" className="text-danger mt-5" style={linkStyle} onClick={() => {
-          localStorage.removeItem('user');
-          localStorage.removeItem('token');
-        }}>
+        <button onClick={handleLogout} className="btn text-danger mt-5 w-100 text-start ps-4 border-0 shadow-none" style={linkStyle}>
           Logout
-        </Link>
+        </button>
       </div>
 
       {/* Main Content */}
@@ -135,16 +148,22 @@ const WardenMess = () => {
           <table className="table table-hover align-middle mb-0 text-center">
             <thead className="table-dark">
               <tr style={{ height: '50px' }}>
-                <th>Day</th>
-                <th>Meal</th>
-                <th>Dish Name</th>
+                <th onClick={() => requestSort('day_of_week')} style={{ cursor: 'pointer' }}>
+                  Day {sortConfig.key === 'day_of_week' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                </th>
+                <th onClick={() => requestSort('meal_type')} style={{ cursor: 'pointer' }}>
+                  Meal {sortConfig.key === 'meal_type' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                </th>
+                <th onClick={() => requestSort('dish_name')} style={{ cursor: 'pointer' }}>
+                  Dish Name {sortConfig.key === 'dish_name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                </th>
               </tr>
             </thead>
             <tbody>
-              {menu.length === 0 ? (
+              {sortedMenu.length === 0 ? (
                 <tr><td colSpan="3" className="py-4 text-muted">No menu data available.</td></tr>
               ) : (
-                menu.map((m, index) => (
+                sortedMenu.map((m, index) => (
                   <tr key={index} style={{ height: '55px' }}>
                     <td className="fw-bold">{m.day_of_week}</td>
                     <td><span className="badge bg-light text-primary border">{m.meal_type}</span></td>

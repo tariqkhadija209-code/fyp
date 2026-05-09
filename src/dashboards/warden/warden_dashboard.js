@@ -1,70 +1,53 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BASE_URL } from '../../components/constant';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectCurrentUser, logout } from '../../store/slices/authSlice';
+import { useGetWardenStatsQuery, useSendNotificationMutation } from '../../store/api/wardenApi';
+import Loader from '../../components/Loader';
 
 const WardenDashboard = () => {
-  const [stats, setStats] = useState({ present_today: '--' });
+  const user = useSelector(selectCurrentUser);
+  const dispatch = useDispatch();
   const [showSidebar, setShowSidebar] = useState(false);
   const [notif, setNotif] = useState({ title: '', message: '' });
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // RTK Query for stats
+  const { data: statsData, isLoading: statsLoading } = useGetWardenStatsQuery();
+
+  // RTK Query for mutation
+  const [sendNotification, { isLoading: loading }] = useSendNotificationMutation();
 
   const currentDate = new Date().toLocaleDateString();
 
   useEffect(() => {
-    // 1. Session Check
-    const user = JSON.parse(localStorage.getItem('user'));
     if (!user) {
       navigate('/login');
-      return;
     }
+  }, [user, navigate]);
 
-    // 2. Load Stats (Present Today count)
-    const fetchStats = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await fetch(`${BASE_URL}/warden/stats`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await res.json();
-        setStats(data);
-      } catch (err) {
-        console.error("Stats Error:", err);
-      }
-    };
+  if (statsLoading) return <Loader />;
+  const stats = statsData || { present_today: '--' };
 
-    fetchStats();
-  }, [navigate]);
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
 
-  // 3. Send Notification Logic
   const handleNotifSubmit = async (e) => {
     e.preventDefault();
-    const user = JSON.parse(localStorage.getItem('user'));
-    setLoading(true);
-
-    const formData = new FormData();
-    formData.append("sender_id", user.user_id || user.id);
-    formData.append("title", notif.title);
-    formData.append("message", notif.message);
-
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${BASE_URL}/warden/send-notification`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData
-      });
+      await sendNotification({
+        sender_id: user.user_id || user.id,
+        title: notif.title,
+        message: notif.message
+      }).unwrap();
 
-      if (res.ok) {
-        alert("Notification sent successfully!");
-        setNotif({ title: '', message: '' }); // Clear form
-      } else {
-        alert("Failed to send notification.");
-      }
+      alert("Notification sent successfully!");
+      setNotif({ title: '', message: '' });
     } catch (err) {
-      alert("Server error!");
-    } finally {
-      setLoading(false);
+      console.error("Notification error:", err);
+      alert("Failed to send notification.");
     }
   };
 
@@ -83,12 +66,9 @@ const WardenDashboard = () => {
         </Link>
         <Link to="/warden/attendance" style={linkStyle}><i className="bi bi-calendar-check me-2"></i> Attendance</Link>
         <Link to="/warden/mess" style={linkStyle}><i className="bi bi-egg-fried me-2"></i> Manage Mess</Link>
-        <Link to="/login" className="text-danger mt-5" style={linkStyle} onClick={() => {
-          localStorage.removeItem('user');
-          localStorage.removeItem('token');
-        }}>
+        <button onClick={handleLogout} className="btn text-danger mt-5 w-100 text-start ps-4 border-0 shadow-none" style={linkStyle}>
           <i className="bi bi-box-arrow-left me-2"></i> Logout
-        </Link>
+        </button>
       </div>
 
       {/* Main Content */}

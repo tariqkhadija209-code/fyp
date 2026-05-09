@@ -1,73 +1,52 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import {BASE_URL} from '../../components/constant'
+import { useDispatch } from 'react-redux';
+import { logout } from '../../store/slices/authSlice';
+import { useNavigate, Link } from 'react-router-dom';
+import { useGetRoomsQuery, useGetPendingStudentsQuery, useAddRoomMutation, useAllocateRoomAIMutation } from '../../store/api/adminApi';
+import Loader from '../../components/Loader';
+import { useState } from 'react';
+
 const AdminRooms = () => {
-  const [rooms, setRooms] = useState([]);
-  const [pendingStudents, setPendingStudents] = useState([]);
-  const [newRoom, setNewRoom] = useState({ room_no: '', capacity: 3, block: 'A' });
+  const [newRoom, setNewRoom] = useState({ room_no: '', capacity: 3, block: 'A', wing: 'General' });
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
+  // RTK Query for fetching rooms and pending students
+  const { data: rooms = [], isLoading: roomsLoading } = useGetRoomsQuery();
+  const { data: pendingStudents = [], isLoading: pendingLoading } = useGetPendingStudentsQuery();
 
-  const fetchData = async () => {
+  // RTK Query for adding room and AI allocation
+  const [addRoom] = useAddRoomMutation();
+  const [allocateRoomAI] = useAllocateRoomAIMutation();
+
+  if (roomsLoading || pendingLoading) return <Loader />;
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
+
+  const handleAddRoom = async (e) => {
+    e.preventDefault();
     try {
-   
-      const [roomRes, studentRes] = await Promise.all([
-        fetch(`${BASE_URL}/admin/rooms`),
-        fetch(`${BASE_URL}/admin/pending-students`)
-      ]);
-
-      const roomData = await roomRes.json();
-      const studentData = await studentRes.json();
-
-      setRooms(roomData);
-      setPendingStudents(studentData);
+      const result = await addRoom(newRoom).unwrap();
+      if (result.status === 'success') {
+        alert("Room Added!");
+      } else {
+        alert(result.message);
+      }
     } catch (err) {
-      console.error("Data load failed:", err);
+      console.error("Add room error:", err);
+      alert("Error adding room");
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-const handleAddRoom = async (e) => {
-  e.preventDefault();
-
-  const formData = new FormData();
-  formData.append("room_no", newRoom.room_no);
-  formData.append("block", newRoom.block);
-  formData.append("capacity", newRoom.capacity);
-  formData.append("wing", newRoom.wing);
-
-  try {
-    const res = await fetch(`${BASE_URL}/admin/add-room`, {
-      method: 'POST',
-      body: formData   
-    });
-
-    const data = await res.json();
-
-    if (res.ok) {
-      alert("Room Added!");
-      fetchData();
-    } else {
-      alert(data.message);
-    }
-  } catch (err) {
-    alert("Error adding room");
-  }
-};
-
-  // 3. AI Allocation Run karne ka Function
   const runAI = async (id) => {
     if (!window.confirm("AI Allocation shuru karein?")) return;
     try {
-      const res = await fetch(`${BASE_URL}/admin/allocate-room-ai/${id}`, {
-        method: 'POST'
-      });
-      const data = await res.json();
-      alert(data.message);
-      fetchData(); 
+      const result = await allocateRoomAI(id).unwrap();
+      alert(result.message);
     } catch (err) {
+      console.error("AI Allocation error:", err);
       alert("Server error or AI service down!");
     }
   };
@@ -81,7 +60,9 @@ const handleAddRoom = async (e) => {
         <Link to="/admin/rooms" style={{ ...linkStyle, background: '#007bff', color: 'white' }}>Room Management</Link>
         <Link to="/admin/fees" style={linkStyle}>Fee Verification</Link>
         <Link to="/admin/complaints" style={linkStyle}>Complaints View</Link>
-        <Link to="/login" className="text-danger mt-5" style={linkStyle}>Logout</Link>
+        <button onClick={handleLogout} className="btn text-danger mt-5 w-100 text-start ps-4 border-0 shadow-none" style={linkStyle}>
+          Logout
+        </button>
       </div>
 
       {/* Main Content */}

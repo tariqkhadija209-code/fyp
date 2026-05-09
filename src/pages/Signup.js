@@ -1,9 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { BASE_URL } from '../components/constant';
+import { useSelector } from 'react-redux';
+import { useSignupMutation } from '../store/api/authApi';
+import { selectIsAuthenticated, selectUserRole } from '../store/slices/authSlice';
 
 const Signup = () => {
     const navigate = useNavigate();
+    const isAuthenticated = useSelector(selectIsAuthenticated);
+    const userRole = useSelector(selectUserRole);
+    const [signup] = useSignupMutation();
+
+    useEffect(() => {
+        if (isAuthenticated && userRole) {
+            const role = userRole.toLowerCase();
+            if (role === 'student') navigate('/student/dashboard');
+            else if (role === 'admin') navigate('/admin/dashboard');
+            else if (role === 'warden') navigate('/warden/dashboard');
+        }
+    }, [isAuthenticated, userRole, navigate]);
     const [formData, setFormData] = useState({
         username: '',
         email: '',
@@ -19,28 +33,16 @@ const Signup = () => {
 
     const handleSignup = async (e) => {
         e.preventDefault();
-        
-        const params = new URLSearchParams();
-        Object.keys(formData).forEach(key => params.append(key, formData[key]));
-
         try {
-            const response = await fetch(`${BASE_URL}/signup`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: params
-            });
+            const result = await signup(formData).unwrap();
             
-            const result = await response.json();
-            
-            if (response.ok) {
+            if (result.status === 'success') {
                 alert(result.message || "Account Created Successfully!");
-                navigate("/login"); // Login page par redirect
-            } else {
-                alert("Error: " + (result.detail || "Signup failed"));
+                navigate("/login");
             }
         } catch (error) {
-            console.error("Fetch Error:", error);
-            alert("Connection Error! Apna FastAPI server check karein.");
+            console.error("Signup failed:", error);
+            alert(error?.data?.detail || "Signup failed. Please check your data.");
         }
     };
 

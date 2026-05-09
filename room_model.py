@@ -19,4 +19,4 @@ model.fit(df[['course_num']], df['suggested_block'])
 
 # 3. Save Model
 joblib.dump(model, 'room_allocator.pkl')
-print("✅ Room Allocation Model Generated!")
+print(" Room Allocation Model Generated!")

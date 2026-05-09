@@ -1,36 +1,35 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { BASE_URL } from '../../components/constant';
+import { useDispatch } from 'react-redux';
+import { logout } from '../../store/slices/authSlice';
+import { useNavigate, Link } from 'react-router-dom';
+import { useGetAdminComplaintsQuery, useResolveComplaintMutation } from '../../store/api/adminApi';
+import Loader from '../../components/Loader';
+
 const AdminComplaints = () => {
-  const [complaints, setComplaints] = useState([]);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
- 
-  const loadComplaints = async () => {
-    try {
-      const res = await fetch(`${BASE_URL}/admin/complaints`);
-      const data = await res.json();
-      setComplaints(data);
-    } catch (error) {
-      console.error("Error fetching complaints:", error);
-    }
+  // Using RTK Query for fetching and automatic caching
+  const { data: complaints = [], isLoading } = useGetAdminComplaintsQuery();
+
+  // Using RTK Query mutation for resolving complaints
+  const [resolveComplaintMutation] = useResolveComplaintMutation();
+
+  if (isLoading) return <Loader />;
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
   };
-
-  useEffect(() => {
-    loadComplaints();
-  }, []);
-
   
   const resolveComplaint = async (id) => {
     if (window.confirm("Mark this as Resolved? It will be removed from records.")) {
       try {
-        const res = await fetch(`${BASE_URL}/admin/resolve-complaint/${id}`, {
-          method: 'DELETE'
-        });
-        const result = await res.json();
+        const result = await resolveComplaintMutation(id).unwrap();
         if (result.status === "success") {
-          loadComplaints(); // List refresh karein
+          // No need to manually refresh, RTK Query handles it via tag invalidation
         }
       } catch (error) {
+        console.error("Resolve error:", error);
         alert("Failed to resolve complaint.");
       }
     }
@@ -47,9 +46,9 @@ const AdminComplaints = () => {
         <Link to="/admin/complaints" style={{ ...linkStyle, background: '#1abc9c', color: 'white' }}>
           <i className="bi bi-chat-left-text me-2"></i> Complaints
         </Link>
-        <Link to="/login" className="text-danger mt-5" style={linkStyle}>
+        <button onClick={handleLogout} className="btn text-danger mt-5 w-100 text-start ps-4 border-0 shadow-none" style={linkStyle}>
           <i className="bi bi-box-arrow-left me-2"></i> Logout
-        </Link>
+        </button>
       </div>
 
       {/* Main Content Section */}

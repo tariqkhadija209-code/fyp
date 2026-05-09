@@ -1,58 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BASE_URL } from '../../components/constant';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectCurrentUser, logout } from '../../store/slices/authSlice';
+import { useMarkAttendanceMutation, useGetAttendanceStatusQuery } from '../../store/api/studentApi';
+import Loader from '../../components/Loader';
+
 const StudentAttendance = () => {
+  const user = useSelector(selectCurrentUser);
+  const dispatch = useDispatch();
   const [statusMsg, setStatusMsg] = useState("");
-  const [isMarked, setIsMarked] = useState(false);
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Check if attendance is already marked today
+  const { data: statusData, isLoading: isStatusLoading } = useGetAttendanceStatusQuery(user?.student_id, {
+    skip: !user?.student_id,
+  });
+
+  const [markAttendanceMutation, { isLoading: loading }] = useMarkAttendanceMutation();
 
   const today = new Date().toDateString();
 
-  // 1. Check if session exists on load
   useEffect(() => {
-    const userStr = localStorage.getItem('user');
-    if (!userStr) {
-      alert("Session expired. Please login again.");
+    if (!user) {
       navigate('/login');
     }
-  }, [navigate]);
+  }, [user, navigate]);
 
-  // 2. Mark Attendance Function
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
+
+  if (isStatusLoading) return <Loader />;
+
+  const isMarked = statusData?.is_marked || false;
+
   const markAttendance = async () => {
-    const userStr = localStorage.getItem('user');
-    const user = JSON.parse(userStr);
-
-    // Student ID handle karein
-    const finalId = user.student_id || user.user_id;
-
-    setLoading(true);
+    const finalId = user?.student_id || user?.user_id;
     setStatusMsg("");
 
-    const formData = new FormData();
-    formData.append("student_id", finalId);
-    formData.append("status", "Present");
-
     try {
-      const response = await fetch(`${BASE_URL}/student/mark-attendance`, {
-        method: 'POST',
-        body: formData
-      });
+      const result = await markAttendanceMutation({
+        student_id: finalId,
+        status: "Present"
+      }).unwrap();
 
-      const result = await response.json();
-
-      if (response.ok && result.status === "success") {
+      if (result.status === "success") {
         alert("Attendance Marked Successfully!");
-        setIsMarked(true);
         setStatusMsg("Success! Your presence is recorded.");
       } else {
         setStatusMsg(` ${result.message || "Failed to mark."}`);
       }
     } catch (error) {
-      console.error("Fetch Error:", error);
+      console.error("Mark attendance error:", error);
       alert("Server connection failed!");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -66,7 +67,9 @@ const StudentAttendance = () => {
         <Link to="/student/mess" style={linkStyle}>Mess Menu</Link>
         <Link to="/student/fees" style={linkStyle}>Fee Status</Link>
         <Link to="/student/complaints" style={linkStyle}>My Complaints</Link>
-        <Link to="/login" className="text-danger mt-5" style={linkStyle}>Logout</Link>
+        <button onClick={handleLogout} className="btn text-danger mt-5 w-100 text-start ps-4 border-0 shadow-none" style={linkStyle}>
+          Logout
+        </button>
       </div>
 
       {/* Main Content Section */}

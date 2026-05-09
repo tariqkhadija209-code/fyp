@@ -15,6 +15,7 @@ from typing import Optional, List
 
 import google.generativeai as genai
 from google.genai import types
+import ollama
 
 
 
@@ -611,6 +612,22 @@ async def mark_attendance(student_id: int = Form(...), status: str = Form(...)):
     finally:
         db.close()
 
+@app.get("/student/attendance-status/{student_id}")
+async def check_attendance_status(student_id: int):
+    db = get_db_connection()
+    cursor = db.cursor()
+    try:
+        query = "SELECT status FROM attendance WHERE student_id = %s AND marked_date = CURDATE() LIMIT 1"
+        cursor.execute(query, (student_id,))
+        record = cursor.fetchone()
+        if record:
+            return {"status": "success", "is_marked": True}
+        return {"status": "success", "is_marked": False}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+    finally:
+        db.close()
+
 @app.get("/student/room-details/{student_id}")
 async def get_room_details(student_id: int):
     db = get_db_connection()
@@ -852,16 +869,18 @@ async def hostel_bot(request: Request):
         print(f"User Message: {user_msg}, Student ID: {student_id}")
 
         # Construct System Instructions with User Context
+        current_day = datetime.datetime.now().strftime("%A")
         system_instruction = (
             "You are the HostelFlow AI Assistant. You help students with their hostel-related queries.\n"
             "You have access to tools that can query the database for real-time information.\n"
             "INSTRUCTIONS:\n"
             "1. Answer concisely and politely.\n"
-            "2. Respond in the SAME language the user used.\n"
+            "2. Respond in the SAME language the user used (Urdu/Hindi/English).\n"
             f"3. CURRENT USER CONTEXT: The student currently asking has student_id = {student_id}.\n"
             "   - If the user asks about 'my room', 'my fees', or 'my profile', use this ID.\n"
             "   - If student_id is null/missing, tell them to log in to see personal details.\n"
-            "4. For mess menu, ask for the day if not provided.\n"
+            f"4. TODAY IS: {current_day}.\n"
+            "   - If the user asks for 'today's menu' or just 'menu' without specifying a day, assume it's for today and use the db_get_mess_menu tool.\n"
             "5. Always prioritize using the provided tools to get accurate data."
         )
         models = ["gemini-2.5-flash", "gemini-2.0-flash"]
